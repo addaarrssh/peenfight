@@ -1677,9 +1677,35 @@
         window.updateLiveScoreboard();
       },
 
-      checkOuts: function() {
+      checkOuts: function(forcedPOut = null, forcedROut = null) {
         if (!window.PF_MULTIPLAYER || window.PF_MULTIPLAYER.state !== 'OPEN') return;
-        if (!window.PF_MULTIPLAYER.isHost) return; // Host is the authoritative referee
+        if (!window.PF_MULTIPLAYER.isHost) {
+          // Guest check: if Guest detects an out-of-bounds locally, notify Host immediately
+          if (!this.isRoundEnding && Date.now() >= this.settleCooldownUntil && window.__pf && window.__pf.pens) {
+            const pPen = window.__pf.pens["player"];
+            const rPen = window.__pf.pens["rival"];
+            if (pPen && rPen && pPen.body && rPen.body) {
+              const pPos = pPen.body.translation();
+              const rPos = rPen.body.translation();
+              const S = window.roomPlayerCount ? (1.0 + (window.roomPlayerCount - 2) * 0.125) : 1.0;
+              const maxW = (0.46 * S) / 2 + 0.08;
+              const maxD = (0.70 * S) / 2 + 0.08;
+              const pOut = pPos.y < -0.035 || Math.abs(pPos.x) > maxW || Math.abs(pPos.z) > maxD;
+              const rOut = rPos.y < -0.035 || Math.abs(rPos.x) > maxW || Math.abs(rPos.z) > maxD;
+              if (pOut || rOut) {
+                const allT = {};
+                for (const [id, phys] of Object.entries(window.__pf.pens)) {
+                  const t = phys?.body?.translation(), r = phys?.body?.rotation();
+                  if (t && r) allT[id] = { p: [t.x, t.y, t.z], q: [r.x, r.y, r.z, r.w] };
+                }
+                window.PF_MULTIPLAYER.sendPenFallen(pOut, rOut, allT);
+              }
+            }
+          }
+          return;
+        }
+
+        // Authoritative Host Referee
         if (this.isRoundEnding) return;
         if (Date.now() < this.settleCooldownUntil) return;
         if (!window.__pf || !window.__pf.pens) return;
@@ -1696,11 +1722,18 @@
         const maxW = (0.46 * S) / 2 + 0.08;
         const maxD = (0.70 * S) / 2 + 0.08;
 
-        const pOut = pPos.y < -0.035 || Math.abs(pPos.x) > maxW || Math.abs(pPos.z) > maxD;
-        const rOut = rPos.y < -0.035 || Math.abs(rPos.x) > maxW || Math.abs(rPos.z) > maxD;
+        const pOut = (forcedPOut !== null) ? forcedPOut : (pPos.y < -0.035 || Math.abs(pPos.x) > maxW || Math.abs(pPos.z) > maxD);
+        const rOut = (forcedROut !== null) ? forcedROut : (rPos.y < -0.035 || Math.abs(rPos.x) > maxW || Math.abs(rPos.z) > maxD);
 
         if (pOut || rOut) {
           this.isRoundEnding = true;
+          try {
+            pPen.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+            pPen.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+            rPen.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+            rPen.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+          } catch(e) {}
+
           let winner = null;
           if (pOut && !rOut) {
             winner = "rival"; // Guest scored
@@ -1879,7 +1912,31 @@
         window.startMatchWithTimer(true);
       });
 
+      // Shot Anti-Freeze Watchdog (Arm on any shot)
+      function armShotWatchdog() {
+        if (window._shotWatchdogTimer) clearTimeout(window._shotWatchdogTimer);
+        window._shotWatchdogTimer = setTimeout(() => {
+          if (window.PF_MULTIPLAYER && window.PF_MULTIPLAYER.state === 'OPEN') {
+            if (window.PF_MULTIPLAYER_MATCH && !window.PF_MULTIPLAYER_MATCH.isRoundEnding) {
+              console.log("[PF_MULTIPLAYER] Shot watchdog resolved motion — ensuring turn/referee sync.");
+              if (window.__pf && window.__pf.pens) {
+                for (const pen of Object.values(window.__pf.pens)) {
+                  try {
+                    pen.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+                    pen.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+                  } catch(e) {}
+                }
+              }
+              window.PF_MULTIPLAYER.lastShotByMe = false;
+              window.PF_MULTIPLAYER_MATCH.checkOuts();
+              window.PF_NET.updateTurnCue();
+            }
+          }
+        }, 3500);
+      }
+
       window.PF_MULTIPLAYER.on('opponentShot', (data) => {
+        armShotWatchdog();
         window.isHandlingRemoteShot = true;
         if (window.__pf && window.__pf.pens) {
           if (data.transform) {
@@ -1917,7 +1974,29 @@
         setTimeout(() => { window.isHandlingRemoteShot = false; }, 250);
       });
 
+      // Real-Time High-Frequency Live Physics Streaming
+      window.PF_MULTIPLAYER.on('liveTransforms', (data) => {
+        if (window.__pf && window.__pf.pens && data.pens && !window.PF_MULTIPLAYER.lastShotByMe) {
+          for (const [id, tf] of Object.entries(data.pens)) {
+            const pen = window.__pf.pens[id];
+            if (pen && tf && tf.p && tf.q) {
+              try {
+                pen.body.setTranslation({ x: tf.p[0], y: tf.p[1], z: tf.p[2] }, true);
+                pen.body.setRotation({ x: tf.q[0], y: tf.q[1], z: tf.q[2], w: tf.q[3] }, true);
+                if (tf.v) pen.body.setLinvel({ x: tf.v[0], y: tf.v[1], z: tf.v[2] }, true);
+                if (tf.w) pen.body.setAngvel({ x: tf.w[0], y: tf.w[1], z: tf.w[2] }, true);
+                if (window.__pf.visualPens && window.__pf.visualPens[id] && window.__pf.visualPens[id].root) {
+                  window.__pf.visualPens[id].root.position.set(tf.p[0], tf.p[1], tf.p[2]);
+                  window.__pf.visualPens[id].root.quaternion.set(tf.q[0], tf.q[1], tf.q[2], tf.q[3]);
+                }
+              } catch(e) {}
+            }
+          }
+        }
+      });
+
       window.PF_MULTIPLAYER.on('settleSync', (data) => {
+        if (window._shotWatchdogTimer) clearTimeout(window._shotWatchdogTimer);
         if (window.__pf && window.__pf.pens && data.pens) {
           for (const [id, tf] of Object.entries(data.pens)) {
             const pen = window.__pf.pens[id];
@@ -1941,6 +2020,23 @@
         window.PF_NET.updateTurnCue();
         if (window.PF_MULTIPLAYER_MATCH && !window.PF_MULTIPLAYER_MATCH.isRoundEnding) {
           window.PF_MULTIPLAYER_MATCH.checkOuts();
+        }
+      });
+
+      window.PF_MULTIPLAYER.on('penFallen', (data) => {
+        if (window.PF_MULTIPLAYER && window.PF_MULTIPLAYER.isHost && window.PF_MULTIPLAYER_MATCH) {
+          if (data.pens && window.__pf && window.__pf.pens) {
+            for (const [id, tf] of Object.entries(data.pens)) {
+              const pen = window.__pf.pens[id];
+              if (pen && tf && tf.p && tf.q) {
+                try {
+                  pen.body.setTranslation({ x: tf.p[0], y: tf.p[1], z: tf.p[2] }, true);
+                  pen.body.setRotation({ x: tf.q[0], y: tf.q[1], z: tf.q[2], w: tf.q[3] }, true);
+                } catch(e) {}
+              }
+            }
+          }
+          window.PF_MULTIPLAYER_MATCH.checkOuts(data.pOut, data.rOut);
         }
       });
 
