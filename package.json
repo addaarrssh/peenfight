@@ -1,0 +1,13 @@
+{
+  "name": "penfight-exact-clone",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Exact standalone clone of penfight.xyz",
+  "scripts": {
+    "start": "npx serve . -l 3000",
+    "dev": "python3 -m http.server 3000"
+  },
+  "devDependencies": {
+    "vercel": "^59.10.0"
+  }
+}

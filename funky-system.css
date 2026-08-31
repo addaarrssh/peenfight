@@ -1,0 +1,194 @@
+/* ==========================================================================
+   PEN FIGHT — GLOBAL COMIC DESIGN SYSTEM (funky-system.css)
+   Theme: "Warm Comic Zine Arena"
+   ========================================================================== */
+
+@import url('/pen-fight-tokens.css');
+
+:root {
+  /* Mapped directly to unified tokens */
+  --paper: var(--pf-paper);
+  --paper-grain: var(--pf-paper-dark);
+  --riso-orange: var(--pf-orange);
+  --riso-teal: var(--pf-teal);
+  --riso-pink: var(--pf-orange);
+  --riso-mustard: var(--pf-mustard);
+  --ink: var(--pf-ink);
+  --tape: rgba(232, 185, 35, 0.35);
+  --tape-border: rgba(26, 26, 26, 0.2);
+
+  /* Page Accent Overrides */
+  --page-accent: var(--pf-orange);
+  --page-accent-light: var(--pf-orange-light);
+
+  /* Typography strictly mapped to canonical tokens */
+  --font-display: var(--pf-font-display);
+  --font-marker: var(--pf-font-accent);
+  --font-hand: var(--pf-font-accent);
+  --font-body: var(--pf-font-body);
+}
+
+body.theme-pink {
+  --page-accent: var(--pf-orange);
+  --page-accent-light: var(--pf-orange-light);
+}
+body.theme-teal {
+  --page-accent: var(--pf-teal);
+  --page-accent-light: var(--pf-teal-light);
+}
+body.theme-mustard {
+  --page-accent: var(--pf-mustard);
+  --page-accent-light: var(--pf-mustard-light);
+}
+body.theme-orange {
+  --page-accent: var(--pf-orange);
+  --page-accent-light: var(--pf-orange-light);
+}
+
+/* ==========================================================================
+   RESET & BASE
+   ========================================================================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--pf-paper);
+  color: var(--pf-ink);
+  font-family: var(--pf-font-body);
+  line-height: 1.5;
+  overflow-x: hidden;
+  cursor: default;
+  background-image: var(--pf-texture-halftone);
+  padding-top: 60px;
+}
+
+::selection {
+  background: var(--pf-mustard);
+  color: var(--pf-ink);
+}
+
+/* Squiggly inline links */
+a.doodle-link {
+  color: var(--pf-ink);
+  font-weight: 700;
+  text-decoration: underline wavy var(--pf-orange) 2px;
+  transition: color var(--pf-duration-fast) ease;
+}
+a.doodle-link:hover {
+  color: var(--pf-orange);
+}
+
+/* TAPE, STAPLE, & TORN DIVIDERS */
+.tape-strip {
+  position: absolute;
+  height: 26px;
+  width: 105px;
+  background: var(--tape);
+  border-left: 2px dashed var(--tape-border);
+  border-right: 2px dashed var(--tape-border);
+  box-shadow: 1px 2px 4px rgba(0,0,0,0.12);
+  z-index: 5;
+  pointer-events: none;
+}
+.tape-top-left { top: -14px; left: 16px; transform: rotate(-5deg); }
+.tape-top-right { top: -14px; right: 16px; transform: rotate(4deg); }
+.tape-center { top: -14px; left: calc(50% - 52px); transform: rotate(-1deg); }
+
+.staple-mark {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px;
+  height: 6px;
+  border-top: 3px solid var(--pf-ink);
+  border-left: 3px solid var(--pf-ink);
+  border-right: 3px solid var(--pf-ink);
+}
+
+/* Torn Edge Dividers */
+.torn-paper-edge-bottom {
+  position: relative;
+  width: 100%;
+  height: 24px;
+  background-image: var(--pf-texture-torn-edge);
+  background-repeat: repeat-x;
+  background-size: 1200px 24px;
+  z-index: 4;
+}
+
+/* Sticker Buttons */
+.btn-sticker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--pf-font-display);
+  font-size: 1.4rem;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  padding: 10px 24px;
+  border: var(--pf-border);
+  border-radius: var(--pf-radius-sm);
+  background: var(--pf-orange);
+  color: var(--pf-paper-light);
+  box-shadow: var(--pf-shadow-primary);
+  transform: rotate(-1.5deg);
+  transition: transform var(--pf-duration-base) var(--pf-ease-bounce),
+              box-shadow var(--pf-duration-base) var(--pf-ease-bounce),
+              background var(--pf-duration-base) ease;
+  cursor: pointer;
+}
+.btn-sticker:hover {
+  transform: translateY(-4px) scale(1.04) rotate(1deg);
+  box-shadow: var(--pf-shadow-hover-lift);
+  background: var(--pf-orange-dark);
+  color: #fff;
+}
+.btn-sticker:active {
+  transform: translateY(2px) scale(0.98);
+  box-shadow: 2px 2px 0 var(--pf-ink);
+}
+
+.btn-sticker-teal {
+  background: var(--pf-teal);
+  box-shadow: var(--pf-shadow-secondary);
+}
+.btn-sticker-teal:hover {
+  background: var(--pf-teal-dark);
+}
+
+.btn-sticker-mustard {
+  background: var(--pf-mustard);
+  color: var(--pf-ink);
+  box-shadow: var(--pf-shadow-highlight);
+}
+.btn-sticker-mustard:hover {
+  background: var(--pf-mustard-dark);
+}
+
+/* Badges and Tags */
+.stamp-badge {
+  display: inline-block;
+  font-family: var(--pf-font-display);
+  font-size: 1.1rem;
+  letter-spacing: 0.05em;
+  padding: 4px 12px;
+  border: var(--pf-border-thin);
+  background: var(--pf-mustard);
+  color: var(--pf-ink);
+  box-shadow: 2px 2px 0 var(--pf-ink);
+  transform: rotate(-2deg);
+}
+
+.marker-tag {
+  font-family: var(--pf-font-accent);
+  color: var(--pf-orange);
+  display: inline-block;
+}

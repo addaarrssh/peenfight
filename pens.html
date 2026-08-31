@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arsenal — Pen Fight</title>
+
+  <!-- Unified Comic Zine Design Tokens & Stylesheets -->
+  <link rel="stylesheet" href="/pen-fight-tokens.css">
+  <link rel="stylesheet" href="/assets/comic-nav.css">
+  <script src="/assets/comic-nav.js" defer></script>
+
+  <style>
+    body {
+      background-color: var(--pf-paper);
+      background-image: var(--pf-texture-halftone);
+      color: var(--pf-ink);
+      font-family: var(--pf-font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+      padding-top: 60px;
+      margin: 0;
+      box-sizing: border-box;
+    }
+
+    main {
+      flex: 1;
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 20px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      box-sizing: border-box;
+    }
+
+    .arsenal-hero {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .arsenal-title {
+      font-family: var(--pf-font-display);
+      font-size: var(--pf-text-3xl);
+      color: var(--pf-ink);
+      letter-spacing: 0.04em;
+      margin: 0;
+    }
+
+    .arsenal-sub {
+      font-size: var(--pf-text-sm);
+      color: var(--pf-ink-soft);
+      max-width: 60ch;
+      margin: 0;
+    }
+
+    /* Big Slide Card */
+    .slide-card {
+      background: var(--pf-paper-light);
+      border: var(--pf-border-thick);
+      border-radius: var(--pf-radius-lg);
+      box-shadow: 6px 6px 0 var(--pf-ink), 12px 12px 0 var(--pf-orange);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .slide-head {
+      padding: 18px 24px 14px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      border-bottom: 2px solid var(--pf-ink);
+      background: var(--pf-paper);
+    }
+
+    .pen-tag {
+      font-family: var(--pf-font-body);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--pf-orange-dark);
+      text-transform: uppercase;
+    }
+
+    .pen-title {
+      font-family: var(--pf-font-display);
+      font-size: 36px;
+      letter-spacing: 0.04em;
+      color: var(--pf-ink);
+      line-height: 1.1;
+      margin: 2px 0 0 0;
+    }
+
+    .slide-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .pen-file-name {
+      font-family: var(--pf-font-body);
+      font-size: 11px;
+      color: var(--pf-ink-muted);
+      background: var(--pf-paper-light);
+      padding: 4px 8px;
+      border-radius: var(--pf-radius-sm);
+      border: 1.5px solid var(--pf-ink);
+    }
+
+    .slide-idx-badge {
+      font-family: var(--pf-font-display);
+      font-size: 18px;
+      color: var(--pf-ink);
+      background: var(--pf-mustard);
+      border: var(--pf-border-thin);
+      padding: 2px 10px;
+      border-radius: var(--pf-radius-sm);
+      box-shadow: 2px 2px 0 var(--pf-ink);
+    }
+
+    /* Pen Display Stage */
+    .pen-display-stage {
+      min-height: 260px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      background: var(--pf-paper-light);
+      background-image: var(--pf-texture-halftone);
+      padding: 30px 70px;
+      overflow: hidden;
+      border-bottom: 2px solid var(--pf-ink);
+    }
+
+    .pen-hero-image {
+      max-width: 100%;
+      height: auto;
+      max-height: 130px;
+      object-fit: contain;
+      filter: drop-shadow(0 10px 18px rgba(26, 26, 26, 0.4));
+      transition: transform var(--pf-duration-base) var(--pf-ease-bounce);
+    }
+
+    .pen-hero-image:hover {
+      transform: scale(1.05) rotate(-1deg);
+    }
+
+    .slide-nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--pf-mustard);
+      border: var(--pf-border);
+      color: var(--pf-ink);
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      font-family: var(--pf-font-display);
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform var(--pf-duration-fast) var(--pf-ease-bounce),
+                  box-shadow var(--pf-duration-fast) ease;
+      box-shadow: 3px 3px 0 var(--pf-ink);
+      z-index: 10;
+    }
+
+    .slide-nav-btn:hover {
+      background: var(--pf-orange);
+      color: var(--pf-paper-light);
+      transform: translateY(-50%) scale(1.1);
+      box-shadow: 4px 4px 0 var(--pf-ink);
+    }
+
+    .btn-prev { left: 16px; }
+    .btn-next { right: 16px; }
+
+    /* Slide Body & Stats */
+    .slide-body {
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background: var(--pf-paper-light);
+    }
+
+    .pen-flavour {
+      font-family: var(--pf-font-accent);
+      font-size: var(--pf-text-base);
+      color: var(--pf-orange);
+      margin: 0;
+    }
+
+    .pen-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    @media (max-width: 768px) {
+      .pen-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .stat-box {
+      background: var(--pf-paper);
+      border: var(--pf-border);
+      border-radius: var(--pf-radius-md);
+      padding: 10px 12px;
+      box-shadow: 2px 2px 0 var(--pf-ink);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stat-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--pf-ink-muted);
+      text-transform: uppercase;
+    }
+
+    .stat-val {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--pf-ink);
+    }
+
+    .stat-bar {
+      width: 100%;
+      height: 6px;
+      background: var(--pf-paper-dark);
+      border: 1px solid var(--pf-ink);
+      border-radius: var(--pf-radius-pill);
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .stat-fill {
+      height: 100%;
+      background: var(--pf-orange);
+      transition: width var(--pf-duration-base) ease;
+    }
+
+    .stat-fill.fill-teal {
+      background: var(--pf-teal);
+    }
+
+    .stat-fill.fill-mustard {
+      background: var(--pf-mustard);
+    }
+
+    .slide-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding-top: 10px;
+      border-top: 2px solid var(--pf-ink);
+    }
+    @media (max-width: 600px) {
+      .slide-footer {
+        flex-direction: column-reverse;
+        align-items: stretch;
+      }
+      .slide-head {
+        flex-direction: column;
+        gap: 8px;
+        padding: 14px 16px;
+      }
+      .slide-meta {
+        align-self: flex-start;
+      }
+      .pen-title {
+        font-size: 28px;
+      }
+      .pen-display-stage {
+        padding: 20px 48px;
+        min-height: 180px;
+      }
+      .slide-nav-btn {
+        width: 38px;
+        height: 38px;
+        font-size: 18px;
+      }
+    }
+
+    .btn-equip {
+      background: var(--pf-orange);
+      color: var(--pf-paper-light);
+      border: var(--pf-border);
+      border-radius: var(--pf-radius-pill);
+      box-shadow: 3px 3px 0 var(--pf-ink), 6px 6px 0 var(--pf-orange-dark);
+      font-family: var(--pf-font-body);
+      font-weight: 700;
+      font-size: var(--pf-text-sm);
+      padding: 10px 24px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      text-align: center;
+      transition: transform var(--pf-duration-fast) var(--pf-ease-bounce),
+                  box-shadow var(--pf-duration-fast) ease;
+    }
+
+    .btn-equip:hover {
+      transform: translateY(-2px) rotate(-1deg);
+      box-shadow: var(--pf-shadow-hover-lift);
+      background: var(--pf-orange-dark);
+    }
+
+    .equipped-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--pf-teal-dark);
+      background: var(--pf-teal-light);
+      border: var(--pf-border-thin);
+      padding: 6px 12px;
+      border-radius: var(--pf-radius-pill);
+    }
+
+    /* Thumbnail Selector Grid */
+    .thumbnails-section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .thumb-head {
+      font-family: var(--pf-font-display);
+      font-size: var(--pf-text-xl);
+      color: var(--pf-ink);
+      letter-spacing: 0.04em;
+    }
+
+    .thumb-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+    }
+    @media (max-width: 800px) {
+      .thumb-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .thumb-card {
+      background: var(--pf-paper-light);
+      border: var(--pf-border);
+      border-radius: var(--pf-radius-md);
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 var(--pf-ink);
+      transition: transform var(--pf-duration-fast) var(--pf-ease-bounce),
+                  background var(--pf-duration-fast) ease;
+    }
+
+    .thumb-card:hover {
+      transform: translateY(-2px);
+      background: var(--pf-mustard-light);
+      box-shadow: 3px 3px 0 var(--pf-ink);
+    }
+
+    .thumb-card.active {
+      background: var(--pf-mustard);
+      border-color: var(--pf-ink);
+      box-shadow: 3px 3px 0 var(--pf-ink), 5px 5px 0 var(--pf-orange);
+      transform: scale(1.04) rotate(-1deg);
+    }
+
+    .thumb-img {
+      width: 100%;
+      height: 36px;
+      object-fit: contain;
+    }
+
+    .thumb-name {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--pf-ink);
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    /* Toast Notification */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--pf-paper-light);
+      border: var(--pf-border);
+      border-radius: var(--pf-radius-pill);
+      box-shadow: 4px 4px 0 var(--pf-ink), 7px 7px 0 var(--pf-orange);
+      padding: 10px 20px;
+      font-family: var(--pf-font-body);
+      font-weight: 700;
+      font-size: var(--pf-text-sm);
+      color: var(--pf-ink);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 50000;
+      opacity: 0;
+      transition: transform var(--pf-duration-base) var(--pf-ease-bounce), opacity var(--pf-duration-base) ease;
+      pointer-events: none;
+    }
+
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <main>
+    <div class="arsenal-hero">
+      <h1 class="arsenal-title">⚡ 12 PENS ARSENAL ⚡</h1>
+      <p class="arsenal-sub">Inspect stats and equip your pen.</p>
+    </div>
+
+    <!-- Main Pen Slide Card -->
+    <div class="slide-card">
+      <div class="slide-head">
+        <div>
+          <span class="pen-tag" id="slide-tag">BALLPOINT · HIGH GRIP</span>
+          <h2 class="pen-title" id="slide-title">Cello Gripper</h2>
+        </div>
+        <div class="slide-meta">
+          <span class="pen-file-name" id="slide-filename">pen-gripper.webp</span>
+          <span class="slide-idx-badge" id="slide-index">1 / 12</span>
+        </div>
+      </div>
+
+      <div class="pen-display-stage">
+        <button type="button" class="slide-nav-btn btn-prev" onclick="prevPen()">❮</button>
+        <img id="slide-image" class="pen-hero-image" src="/assets/art/pen-gripper.webp" alt="Cello Gripper" />
+        <button type="button" class="slide-nav-btn btn-next" onclick="nextPen()">❯</button>
+      </div>
+
+      <div class="slide-body">
+        <p class="pen-flavour" id="slide-flavour">"Rubber grip, high control"</p>
+
+        <div class="pen-stats-grid">
+          <!-- Friction -->
+          <div class="stat-box">
+            <span class="stat-label">Table Grip / Friction (μ)</span>
+            <span class="stat-val" id="stat-friction">0.55 (High Grip)</span>
+            <div class="stat-bar">
+              <div class="stat-fill" id="bar-friction" style="width: 95%;"></div>
+            </div>
+          </div>
+
+          <!-- Bounciness -->
+          <div class="stat-box">
+            <span class="stat-label">Bounciness / Elasticity (e)</span>
+            <span class="stat-val" id="stat-bounce">0.30 (Medium Bounce)</span>
+            <div class="stat-bar">
+              <div class="stat-fill fill-teal" id="bar-bounce" style="width: 50%;"></div>
+            </div>
+          </div>
+
+          <!-- Density -->
+          <div class="stat-box">
+            <span class="stat-label">Mass Density</span>
+            <span class="stat-val" id="stat-density">1409 kg/m³ (Heavy)</span>
+            <div class="stat-bar">
+              <div class="stat-fill fill-mustard" id="bar-density" style="width: 82%;"></div>
+            </div>
+          </div>
+
+          <!-- Combat Trait -->
+          <div class="stat-box">
+            <span class="stat-label">Trait</span>
+            <span class="stat-val" id="stat-trait" style="font-size: 11px;">High Table Grip</span>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="equipped-indicator" id="equipped-indicator">
+            <span>🖊️</span>
+            <span id="equipped-text">Equipped Pen: Cello Gripper</span>
+          </div>
+
+          <button type="button" class="btn-equip" id="btn-equip-action" onclick="equipCurrentPen()">
+            ⚡ EQUIP THIS PEN
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Thumbnails Grid -->
+    <div class="thumbnails-section">
+      <h3 class="thumb-head">📋 ALL 12 PENS ROSTER</h3>
+      <div class="thumb-grid" id="thumb-grid">
+        <!-- Rendered via JavaScript -->
+      </div>
+    </div>
+  </main>
+
+  <div id="toast">
+    <span>✅</span>
+    <span id="toast-msg">Equipped Cello Gripper!</span>
+  </div>
+
+  <script>
+    const PENS = [
+      {
+        id: "gripper",
+        name: "Cello Gripper",
+        tag: "BALLPOINT · HIGH GRIP",
+        filename: "pen-gripper.webp",
+        img: "/assets/art/pen-gripper.webp",
+        friction: 0.55,
+        frictionText: "0.55 (High Grip)",
+        frictionPct: "95%",
+        restitution: 0.30,
+        bounceText: "0.30 (Medium Bounce)",
+        bouncePct: "50%",
+        density: 1409,
+        densityText: "1409 kg/m³ (Heavy)",
+        densityPct: "82%",
+        trait: "High Table Grip",
+        flavour: '"Rubber grip, high control"'
+      },
+      {
+        id: "pilotV5",
+        name: "Pilot V5",
+        tag: "ROLLERBALL · HIGH SPEED",
+        filename: "pen-pilotV5.webp",
+        img: "/assets/art/pen-pilotV5.webp",
+        friction: 0.22,
+        frictionText: "0.22 (Low Drag)",
+        frictionPct: "35%",
+        restitution: 0.44,
+        bounceText: "0.44 (High Elasticity)",
+        bouncePct: "75%",
+        density: 1128,
+        densityText: "1128 kg/m³ (Medium)",
+        densityPct: "65%",
+        trait: "Fast Speed Dart",
+        flavour: '"Fast slide, sharp hit"'
+      },
+      {
+        id: "reynolds-trimax",
+        name: "Reynolds Trimax",
+        tag: "GEL · TRIANGULAR ANTI-ROLL",
+        filename: "pen-reynolds-trimax.webp",
+        img: "/assets/art/pen-reynolds-trimax.webp",
+        friction: 0.42,
+        frictionText: "0.42 (High Friction)",
+        frictionPct: "72%",
+        restitution: 0.20,
+        bounceText: "0.20 (Low Bounce)",
+        bouncePct: "32%",
+        density: 1556,
+        densityText: "1556 kg/m³ (Heavy)",
+        densityPct: "90%",
+        trait: "Anti-Roll Facets",
+        flavour: '"Triangular anti-roll body"'
+      },
+      {
+        id: "reynolds045",
+        name: "Reynolds 045",
+        tag: "BALLPOINT · ALL-ROUNDER",
+        filename: "pen-reynolds045.webp",
+        img: "/assets/art/pen-reynolds045.webp",
+        friction: 0.30,
+        frictionText: "0.30 (Balanced)",
+        frictionPct: "50%",
+        restitution: 0.38,
+        bounceText: "0.38 (Classic Bounce)",
+        bouncePct: "64%",
+        density: 1224,
+        densityText: "1224 kg/m³ (Balanced)",
+        densityPct: "70%",
+        trait: "Balanced All-Rounder",
+        flavour: '"Classic balanced pen"'
+      },
+      {
+        id: "parker",
+        name: "Parker Vector",
+        tag: "STEEL · MAXIMUM MOMENTUM",
+        filename: "pen-parker.webp",
+        img: "/assets/art/pen-parker.webp",
+        friction: 0.28,
+        frictionText: "0.28 (Smooth Slide)",
+        frictionPct: "46%",
+        restitution: 0.16,
+        bounceText: "0.16 (Solid Hit)",
+        bouncePct: "25%",
+        density: 1703,
+        densityText: "1703 kg/m³ (Max Density)",
+        densityPct: "100%",
+        trait: "Heavy Steel Momentum",
+        flavour: '"Heavy steel pen"'
+      },
+      {
+        id: "megatop",
+        name: "Montex Megatop",
+        tag: "BALLPOINT · ERRATIC CURVES",
+        filename: "pen-megatop.webp",
+        img: "/assets/art/pen-megatop.webp",
+        friction: 0.30,
+        frictionText: "0.30 (Medium Friction)",
+        frictionPct: "50%",
+        restitution: 0.34,
+        bounceText: "0.34 (Standard Bounce)",
+        bouncePct: "56%",
+        density: 983,
+        densityText: "983 kg/m³ (Top-Heavy)",
+        densityPct: "55%",
+        trait: "Curved Trick Shots",
+        flavour: '"Curved wobbler cap"'
+      },
+      {
+        id: "addgel",
+        name: "Add Gel",
+        tag: "GEL · HEAVY HITTER",
+        filename: "pen-addgel.webp",
+        img: "/assets/art/pen-addgel.webp",
+        friction: 0.42,
+        frictionText: "0.42 (High Friction)",
+        frictionPct: "72%",
+        restitution: 0.30,
+        bounceText: "0.30 (Medium Bounce)",
+        bouncePct: "50%",
+        density: 1303,
+        densityText: "1303 kg/m³ (Heavy)",
+        densityPct: "76%",
+        trait: "Solid Mass Strike",
+        flavour: '"Heavy solid strike"'
+      },
+      {
+        id: "classmate-octane",
+        name: "Classmate Octane",
+        tag: "GEL · PINBALL ELASTICITY",
+        filename: "pen-classmate-octane.webp",
+        img: "/assets/art/pen-classmate-octane.webp",
+        friction: 0.26,
+        frictionText: "0.26 (Smooth Glide)",
+        frictionPct: "42%",
+        restitution: 0.50,
+        bounceText: "0.50 (High Bounce)",
+        bouncePct: "85%",
+        density: 940,
+        densityText: "940 kg/m³ (Lightweight)",
+        densityPct: "50%",
+        trait: "High Pinball Bounce",
+        flavour: '"Light and bouncy"'
+      },
+      {
+        id: "flair-writometer",
+        name: "Flair Writometer",
+        tag: "BALLPOINT · LONG GLIDE",
+        filename: "pen-flair-writometer.webp",
+        img: "/assets/art/pen-flair-writometer.webp",
+        friction: 0.20,
+        frictionText: "0.20 (Minimal Friction)",
+        frictionPct: "30%",
+        restitution: 0.40,
+        bounceText: "0.40 (Springy)",
+        bouncePct: "68%",
+        density: 825,
+        densityText: "825 kg/m³ (Ultra-Light)",
+        densityPct: "45%",
+        trait: "Long Distance Glide",
+        flavour: '"Long smooth glide"'
+      },
+      {
+        id: "cello-butterflow",
+        name: "Cello Butterflow",
+        tag: "BALLPOINT · IMPACT ABSORBER",
+        filename: "pen-cello-butterflow.webp",
+        img: "/assets/art/pen-cello-butterflow.webp",
+        friction: 0.28,
+        frictionText: "0.28 (Smooth Slide)",
+        frictionPct: "46%",
+        restitution: 0.18,
+        bounceText: "0.18 (Dead Stop)",
+        bouncePct: "28%",
+        density: 1331,
+        densityText: "1331 kg/m³ (Solid)",
+        densityPct: "78%",
+        trait: "Impact Shock Absorber",
+        flavour: '"Smooth impact absorber"'
+      },
+      {
+        id: "linc-ocean",
+        name: "Linc Ocean",
+        tag: "GEL · RICOCHET GLANCE",
+        filename: "pen-linc-ocean.webp",
+        img: "/assets/art/pen-linc-ocean.webp",
+        friction: 0.33,
+        frictionText: "0.33 (Controlled)",
+        frictionPct: "55%",
+        restitution: 0.58,
+        bounceText: "0.58 (High Restitution)",
+        bouncePct: "98%",
+        density: 1403,
+        densityText: "1403 kg/m³ (Dense)",
+        densityPct: "82%",
+        trait: "Angle Ricochet Deflect",
+        flavour: '"Sharp angle ricochet"'
+      },
+      {
+        id: "reynolds-racer-gel",
+        name: "Reynolds Racer Gel",
+        tag: "GEL · WIDE BULLDOZER",
+        filename: "pen-reynolds-racer-gel.webp",
+        img: "/assets/art/pen-reynolds-racer-gel.webp",
+        friction: 0.46,
+        frictionText: "0.46 (Desk Anchor)",
+        frictionPct: "80%",
+        restitution: 0.26,
+        bounceText: "0.26 (Firm Contact)",
+        bouncePct: "42%",
+        density: 1128,
+        densityText: "1128 kg/m³ (Ribbed Body)",
+        densityPct: "65%",
+        trait: "Wide Bulldozer Barrel",
+        flavour: '"Wide ribbed body"'
+      }
+    ];
+
+    let currentIndex = 0;
+    let equippedPenId = localStorage.getItem("pf_equipped_pen") || localStorage.getItem("pf_equipped") || "gripper";
+
+    function updateSlide(index) {
+      currentIndex = (index + PENS.length) % PENS.length;
+      const pen = PENS[currentIndex];
+
+      document.getElementById("slide-tag").textContent = pen.tag;
+      document.getElementById("slide-title").textContent = pen.name;
+      document.getElementById("slide-filename").textContent = pen.filename;
+      document.getElementById("slide-index").textContent = `${currentIndex + 1} / ${PENS.length}`;
+      document.getElementById("slide-image").src = pen.img;
+      document.getElementById("slide-image").alt = pen.name;
+      document.getElementById("slide-flavour").textContent = pen.flavour;
+
+      document.getElementById("stat-friction").textContent = pen.frictionText;
+      document.getElementById("bar-friction").style.width = pen.frictionPct;
+
+      document.getElementById("stat-bounce").textContent = pen.bounceText;
+      document.getElementById("bar-bounce").style.width = pen.bouncePct;
+
+      document.getElementById("stat-density").textContent = pen.densityText;
+      document.getElementById("bar-density").style.width = pen.densityPct;
+
+      document.getElementById("stat-trait").textContent = pen.trait;
+
+      // Update Thumbnails
+      document.querySelectorAll(".thumb-card").forEach((card, idx) => {
+        card.classList.toggle("active", idx === currentIndex);
+      });
+
+      updateEquippedBadge();
+    }
+
+    function prevPen() {
+      updateSlide(currentIndex - 1);
+    }
+
+    function nextPen() {
+      updateSlide(currentIndex + 1);
+    }
+
+    function equipCurrentPen() {
+      const pen = PENS[currentIndex];
+      equippedPenId = pen.id;
+      localStorage.setItem("pf_equipped", pen.id);
+      localStorage.setItem("pf_equipped_pen", pen.id);
+      try {
+        const col = JSON.parse(localStorage.getItem("pf_collection_v1") || "{}");
+        col.equipped = pen.id;
+        if (!col.owned || !Array.isArray(col.owned)) col.owned = ["reynolds045"];
+        if (!col.owned.includes(pen.id)) col.owned.push(pen.id);
+        localStorage.setItem("pf_collection_v1", JSON.stringify(col));
+      } catch(e) {}
+      updateEquippedBadge();
+
+      // Show Toast
+      const toast = document.getElementById("toast");
+      const toastMsg = document.getElementById("toast-msg");
+      toastMsg.textContent = `Equipped ${pen.name} for Arena matches!`;
+      toast.classList.add("show");
+      setTimeout(() => {
+        toast.classList.remove("show");
+      }, 2500);
+    }
+
+    function updateEquippedBadge() {
+      const pen = PENS.find(p => p.id === equippedPenId) || PENS[0];
+      const eqText = document.getElementById("equipped-text");
+      if (eqText) eqText.textContent = `Equipped Pen: ${pen.name}`;
+
+      const btn = document.getElementById("btn-equip-action");
+      if (btn) {
+        if (PENS[currentIndex].id === equippedPenId) {
+          btn.textContent = "✅ CURRENTLY EQUIPPED";
+          btn.style.background = "var(--pf-teal)";
+        } else {
+          btn.textContent = "⚡ EQUIP THIS PEN FOR BATTLES";
+          btn.style.background = "var(--pf-orange)";
+        }
+      }
+    }
+
+    function initThumbnails() {
+      const grid = document.getElementById("thumb-grid");
+      grid.innerHTML = PENS.map((p, idx) => `
+        <div class="thumb-card ${idx === 0 ? 'active' : ''}" onclick="updateSlide(${idx})">
+          <img src="${p.img}" class="thumb-img" alt="${p.name}" />
+          <span class="thumb-name">${p.name}</span>
+        </div>
+      `).join("");
+    }
+
+    // Keyboard Arrow Navigation
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") prevPen();
+      if (e.key === "ArrowRight") nextPen();
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      initThumbnails();
+      const initialIdx = PENS.findIndex(p => p.id === equippedPenId);
+      updateSlide(initialIdx >= 0 ? initialIdx : 0);
+    });
+  </script>
+</body>
+</html>

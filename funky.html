@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PEN FIGHT — 90s School Desk Battle Zine</title>
+  <meta name="description" content="A loud, playful, maximalist collage zine for Pen Fight. Flick yours, knock theirs off the desk, keep it!" />
+  <link rel="stylesheet" href="/pen-fight-tokens.css" />
+  <link rel="stylesheet" href="/assets/comic-nav.css" />
+  <link rel="stylesheet" href="funky-system.css" />
+  <script src="/assets/comic-nav.js" defer></script>
+
+  <style>
+    /* ==========================================================================
+       HERO SPECIFICS
+       ========================================================================== */
+    .hero-section {
+      min-height: 88vh;
+      padding: 40px 24px 70px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    /* Halftone Cut-Paper Blobs */
+    .blob-shape-1 {
+      position: absolute;
+      top: 6%;
+      left: 3%;
+      width: 240px;
+      height: 210px;
+      background: var(--riso-teal);
+      clip-path: polygon(14% 0%, 92% 12%, 100% 78%, 76% 100%, 8% 88%, 0% 28%);
+      opacity: 0.85;
+      transform: rotate(-12deg);
+      z-index: 1;
+      border: 3px solid var(--ink);
+    }
+    .blob-shape-1::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(#1A1A1A 20%, transparent 22%);
+      background-size: 8px 8px;
+      opacity: 0.35;
+    }
+
+    .blob-shape-2 {
+      position: absolute;
+      bottom: 12%;
+      right: 4%;
+      width: 280px;
+      height: 220px;
+      background: var(--riso-pink);
+      clip-path: polygon(25% 5%, 85% 0%, 100% 65%, 75% 95%, 15% 100%, 0% 50%);
+      opacity: 0.85;
+      transform: rotate(8deg);
+      z-index: 1;
+      border: 3px solid var(--ink);
+    }
+    .blob-shape-2::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(#fff 22%, transparent 24%);
+      background-size: 8px 8px;
+      opacity: 0.4;
+    }
+
+    .blob-shape-3 {
+      position: absolute;
+      top: 15%;
+      right: 12%;
+      width: 140px;
+      height: 140px;
+      background: var(--riso-mustard);
+      clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+      transform: rotate(24deg);
+      border: 3px solid var(--ink);
+      z-index: 1;
+    }
+
+    /* Brand Wordmark */
+    .hero-brand-container {
+      position: relative;
+      z-index: 3;
+      margin-bottom: 24px;
+      transform: rotate(-4deg);
+      display: inline-block;
+    }
+
+    .hero-badge-top {
+      display: inline-block;
+      background: var(--riso-mustard);
+      color: var(--ink);
+      font-family: var(--font-marker);
+      font-size: 1.1rem;
+      padding: 6px 18px;
+      border: 3px solid var(--ink);
+      transform: rotate(3deg) translate(-20px, 8px);
+      box-shadow: 4px 4px 0px var(--ink);
+      border-radius: 4px;
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(4.5rem, 14vw, 9.5rem);
+      line-height: 0.88;
+      letter-spacing: 2px;
+      color: #FFF9E6;
+      text-transform: uppercase;
+      -webkit-text-stroke: 4px var(--ink);
+      text-shadow: 
+        8px 8px 0px var(--riso-orange),
+        14px 14px 0px var(--ink);
+      position: relative;
+      margin: 10px 0;
+    }
+
+    .hero-tagline {
+      font-family: var(--font-marker);
+      font-size: clamp(1.2rem, 3.2vw, 2.2rem);
+      background: #FFF;
+      color: var(--ink);
+      display: inline-block;
+      padding: 8px 24px;
+      border: 3px solid var(--ink);
+      transform: rotate(2deg);
+      box-shadow: 5px 5px 0px var(--riso-teal);
+      margin-top: 10px;
+    }
+    .hero-tagline span {
+      color: var(--riso-pink);
+      text-decoration: underline wavy var(--riso-orange) 3px;
+    }
+
+    /* Pen Stickers Floating Around Hero */
+    .hero-pen-sticker {
+      position: absolute;
+      z-index: 2;
+      filter: drop-shadow(6px 6px 0px rgba(26,26,26,0.9));
+      transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+      cursor: pointer;
+    }
+    .hero-pen-sticker:hover {
+      transform: scale(1.15) rotate(15deg) !important;
+    }
+    .pen-1 { top: 18%; left: 10%; width: 220px; transform: rotate(-28deg); }
+    .pen-2 { top: 22%; right: 8%; width: 210px; transform: rotate(38deg); }
+    .pen-3 { bottom: 16%; left: 8%; width: 240px; transform: rotate(18deg); }
+    .pen-4 { bottom: 20%; right: 12%; width: 230px; transform: rotate(-42deg); }
+
+    /* Arrow Doodle */
+    .arrow-doodle-container {
+      position: absolute;
+      top: -55px;
+      left: -130px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transform: rotate(-10deg);
+      pointer-events: none;
+    }
+    .arrow-text {
+      font-family: var(--font-hand);
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--riso-pink);
+      line-height: 1;
+    }
+
+    /* Motion line accents */
+    .motion-lines {
+      position: absolute;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 150ms ease, transform 150ms ease;
+    }
+    .btn-chunky:hover .motion-lines {
+      opacity: 1;
+      transform: scale(1.2);
+    }
+
+    /* ==========================================================================
+       COMIC SECTION
+       ========================================================================== */
+    .comic-section {
+      background: var(--riso-teal);
+      padding: 90px 24px;
+      position: relative;
+      color: #fff;
+    }
+    .comic-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(rgba(0,0,0,0.22) 18%, transparent 19%);
+      background-size: 10px 10px;
+      pointer-events: none;
+    }
+
+    .comic-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 36px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .comic-panel {
+      background: #FFF9E6;
+      color: var(--ink);
+      border: 4px solid var(--ink);
+      padding: 20px;
+      box-shadow: 8px 8px 0px var(--ink);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      transition: transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .comic-panel:hover {
+      transform: translateY(-8px) scale(1.03) !important;
+      box-shadow: 12px 12px 0px var(--ink);
+      z-index: 4;
+    }
+
+    .panel-1 { transform: rotate(-2.5deg); }
+    .panel-2 { transform: rotate(3deg); }
+    .panel-3 { transform: rotate(-3.5deg); }
+    .panel-4 { transform: rotate(2deg); }
+
+    .panel-num {
+      position: absolute;
+      top: -16px;
+      left: -16px;
+      width: 44px;
+      height: 44px;
+      background: var(--riso-orange);
+      color: #fff;
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 3px solid var(--ink);
+      box-shadow: 3px 3px 0px var(--ink);
+      border-radius: 50%;
+    }
+
+    .panel-art-frame {
+      width: 100%;
+      height: 170px;
+      background: var(--paper);
+      border: 3px dashed var(--ink);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ==========================================================================
+       RIVALS STICKER SHEET
+       ========================================================================== */
+    .rivals-teaser-section {
+      background: var(--paper);
+      padding: 90px 20px 70px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sticker-sheet-container {
+      max-width: 100%;
+      overflow-x: auto;
+      padding: 30px 20px;
+      display: flex;
+      gap: 30px;
+      cursor: grab;
+    }
+
+    .rival-card {
+      flex: 0 0 280px;
+      background: #FFF;
+      border: 4px solid var(--ink);
+      padding: 18px;
+      box-shadow: 7px 7px 0px rgba(26,26,26,0.9);
+      position: relative;
+      user-select: none;
+      transition: all 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .rival-card:hover {
+      transform: translateY(-16px) rotate(0deg) scale(1.05) !important;
+      box-shadow: 14px 18px 0px rgba(26, 26, 26, 0.85);
+      border-bottom-right-radius: 40px 15px;
+      z-index: 10;
+    }
+
+    /* ==========================================================================
+       NOTEBOOK ARSENAL
+       ========================================================================== */
+    .pens-section {
+      background: #fffdf5;
+      padding: 90px 24px;
+      position: relative;
+      border-top: 4px solid var(--ink);
+      border-bottom: 4px solid var(--ink);
+      background-image: 
+        linear-gradient(to right, rgba(232, 93, 117, 0.4) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(46, 139, 139, 0.15) 1px, transparent 1px);
+      background-size: 100% 28px;
+    }
+    .pens-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: clamp(30px, 8vw, 120px);
+      width: 3px;
+      background: var(--riso-pink);
+      z-index: 1;
+    }
+    .pens-scatter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 40px;
+      margin-top: 50px;
+    }
+    .pen-doodle-card {
+      background: var(--paper);
+      border: 3px solid var(--ink);
+      padding: 24px 20px;
+      box-shadow: 6px 6px 0px var(--ink);
+      position: relative;
+      transition: transform 160ms ease;
+    }
+    .pen-doodle-card:hover {
+      transform: scale(1.04) rotate(1deg) !important;
+    }
+    .pen-card-1 { transform: rotate(-2deg); }
+    .pen-card-2 { transform: rotate(3deg); }
+    .pen-card-3 { transform: rotate(-3deg); }
+  </style>
+</head>
+<body class="theme-orange">
+
+  <!-- ==========================================================================
+       1. HERO SECTION
+       ========================================================================== -->
+  <section class="hero-section" id="hero">
+    
+    <!-- Cut-Paper Halftone Blobs -->
+    <div class="blob-shape-1"></div>
+    <div class="blob-shape-2"></div>
+    <div class="blob-shape-3"></div>
+
+    <!-- Tape strips decorating hero -->
+    <div class="tape-strip" style="top: 20px; left: 30px; transform: rotate(-18deg);"></div>
+    <div class="tape-strip" style="top: 30px; right: 40px; transform: rotate(24deg);"></div>
+
+    <!-- Floating Pen Stickers -->
+    <img src="/assets/art/pen-reynolds045.webp" alt="Reynolds 045 Pen" class="hero-pen-sticker pen-1" />
+    <img src="/assets/art/pen-pilotV5.webp" alt="Pilot V5 Pen" class="hero-pen-sticker pen-2" />
+    <img src="/assets/art/pen-cello-butterflow.webp" alt="Butterflow Pen" class="hero-pen-sticker pen-3" />
+    <img src="/assets/art/pen-reynolds-trimax.webp" alt="Trimax Pen" class="hero-pen-sticker pen-4" />
+
+    <div class="hero-brand-container">
+      <div>
+        <span class="hero-badge-top">★ 100% NOSTALGIC DESK COMBAT ★</span>
+      </div>
+      <h1 class="hero-title">PEN FIGHT</h1>
+      <div>
+        <p style="font-family: var(--font-marker); font-size: clamp(1.2rem, 3.5vw, 2rem); color: var(--ink); text-transform: uppercase; margin-top: 18px; letter-spacing: 0.05em;">
+          FLICK YOUR PEN. KNOCK THEIRS OFF.
+        </p>
+      </div>
+    </div>
+
+    <!-- Interactive Hero CTA -->
+    <div class="hero-cta-box" style="position: relative; z-index: 4; margin-top: 36px; display: flex; flex-direction: column; align-items: center;">
+      <div class="arrow-doodle-container">
+        <span class="arrow-text">PLAY NOW</span>
+        <svg width="60" height="50" viewBox="0 0 60 50" fill="none">
+          <path d="M5 10 C 25 5, 45 15, 48 38 M 36 32 L 48 40 L 52 26" stroke="#E85D75" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </div>
+
+      <a href="/" class="btn-chunky btn-orange">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+          <polygon points="12 2 15 8 22 9 17 14 18 21 12 17 6 21 7 14 2 9 9 8" stroke="#1A1A1A" stroke-width="2"/>
+        </svg>
+        <span>PLAY PEN FIGHT 3D</span>
+        <svg class="motion-lines" width="140" height="70" viewBox="0 0 140 70" style="position:absolute; top:-15px;">
+          <line x1="10" y1="35" x2="0" y2="35" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round" />
+          <line x1="130" y1="35" x2="140" y2="35" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round" />
+          <line x1="25" y1="12" x2="15" y2="5" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round" />
+          <line x1="115" y1="12" x2="125" y2="5" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round" />
+        </svg>
+      </a>
+
+      <div style="margin-top: 14px; font-family: var(--font-hand); font-size: 1.3rem; font-weight: 700; color: #444;">
+        ⚡ 3D Physics &bull; Real-Time Multiplayer ⚡
+      </div>
+    </div>
+
+    <!-- Sticker Burst Corner -->
+    <div style="position: absolute; bottom: 30px; left: 40px;">
+      <div class="sticker-burst">POW!</div>
+    </div>
+
+  </section>
+
+  <!-- Torn Divider Transition -->
+  <div class="torn-divider"></div>
+
+  <!-- ==========================================================================
+       2. "HOW TO PLAY" COMIC-PANEL SECTION
+       ========================================================================== -->
+  <section class="comic-section" id="how-to-play">
+    <div style="text-align: center;">
+      <div class="sticker-burst" style="background: var(--riso-mustard); color: var(--ink); padding: 12px 28px; font-size: 2rem; margin-bottom: 40px; transform: rotate(-3deg);">
+        💥 HOW TO PLAY 💥
+      </div>
+    </div>
+
+    <div class="comic-grid">
+      
+      <!-- Panel 1 -->
+      <div class="comic-panel panel-1">
+        <div class="tape-strip" style="top: -12px; left: 30%; transform: rotate(3deg);"></div>
+        <div class="panel-num">1</div>
+        <div class="panel-art-frame">
+          <svg width="140" height="120" viewBox="0 0 140 120" fill="none">
+            <rect x="20" y="30" width="100" height="60" rx="6" fill="#E8B923" stroke="#1A1A1A" stroke-width="3"/>
+            <rect x="28" y="38" width="84" height="44" fill="#2E8B8B" stroke="#1A1A1A" stroke-width="2"/>
+            <line x1="15" y1="75" x2="125" y2="40" stroke="#FF6B35" stroke-width="8" stroke-linecap="round"/>
+            <polygon points="125,40 133,37 130,46" fill="#1A1A1A"/>
+          </svg>
+        </div>
+        <h3 style="font-family: var(--font-marker); font-size: 1.4rem; color: var(--riso-orange); text-transform: uppercase;">PICK YOUR WEAPON</h3>
+        <p style="font-family: var(--font-hand); font-size: 1.25rem; font-weight: 700; color: #333;">Lightweight Reynolds 045 for speed, or a heavy Parker Vector for direct smash?</p>
+      </div>
+
+      <!-- Panel 2 -->
+      <div class="comic-panel panel-2">
+        <div class="staple" style="top: 8px; right: 12px;"></div>
+        <div class="panel-num">2</div>
+        <div class="panel-art-frame">
+          <svg width="140" height="120" viewBox="0 0 140 120" fill="none">
+            <rect x="10" y="80" width="120" height="30" fill="#c49a6c" stroke="#1A1A1A" stroke-width="3"/>
+            <line x1="10" y1="80" x2="130" y2="80" stroke="#1A1A1A" stroke-width="4"/>
+            <rect x="35" y="65" width="70" height="10" rx="3" fill="#FF6B35" stroke="#1A1A1A" stroke-width="2" transform="rotate(-15 35 65)"/>
+          </svg>
+        </div>
+        <h3 style="font-family: var(--font-marker); font-size: 1.4rem; color: var(--riso-orange); text-transform: uppercase;">SET YOUR STANCE</h3>
+        <p style="font-family: var(--font-hand); font-size: 1.25rem; font-weight: 700; color: #333;">Place your pen on the wooden grain. Angle the nib sideways to protect your grip!</p>
+      </div>
+
+      <!-- Panel 3 -->
+      <div class="comic-panel panel-3">
+        <div class="tape-strip" style="top: -12px; right: 25%; transform: rotate(-5deg);"></div>
+        <div class="panel-num">3</div>
+        <div class="panel-art-frame">
+          <svg width="140" height="120" viewBox="0 0 140 120" fill="none">
+            <path d="M30 90 C 40 50, 65 40, 85 55" stroke="#1A1A1A" stroke-width="4" stroke-linecap="round"/>
+            <text x="70" y="30" font-family="'Permanent Marker'" font-size="14" fill="#E85D75">FLICK!</text>
+          </svg>
+        </div>
+        <h3 style="font-family: var(--font-marker); font-size: 1.4rem; color: var(--riso-orange); text-transform: uppercase;">THE THUMB FLICK</h3>
+        <p style="font-family: var(--font-hand); font-size: 1.25rem; font-weight: 700; color: #333;">Cock your index finger or snap the thumb. Control your power!</p>
+      </div>
+
+      <!-- Panel 4 -->
+      <div class="comic-panel panel-4">
+        <div class="staple" style="top: 8px; left: 12px;"></div>
+        <div class="panel-num">4</div>
+        <div class="panel-art-frame">
+          <svg width="140" height="120" viewBox="0 0 140 120" fill="none">
+            <rect x="10" y="50" width="70" height="60" fill="#c49a6c" stroke="#1A1A1A" stroke-width="3"/>
+            <text x="80" y="35" font-family="'Bangers'" font-size="22" fill="#FF6B35">WHAM!</text>
+          </svg>
+        </div>
+        <h3 style="font-family: var(--font-marker); font-size: 1.4rem; color: var(--riso-orange); text-transform: uppercase;">KNOCK 'EM OFF!</h3>
+        <p style="font-family: var(--font-hand); font-size: 1.25rem; font-weight: 700; color: #333;">Send their pen onto the floor. Winner keeps the pen and rules the class!</p>
+      </div>
+
+    </div>
+
+    <div style="text-align: center; margin-top: 40px;">
+      <a href="rules.html" class="btn-chunky btn-mustard" style="font-size: 1.2rem;">
+        <span>READ THE FULL COMIC RULEBOOK →</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- Torn Divider Transition -->
+  <div class="torn-divider-bottom"></div>
+
+  <!-- ==========================================================================
+       3. RIVALS TEASER
+       ========================================================================== -->
+  <section class="rivals-teaser-section" id="rivals">
+    <div style="text-align: center; margin-bottom: 30px;">
+      <h2 style="font-family: var(--font-display); font-size: clamp(2.8rem, 7vw, 5rem); text-transform: uppercase; color: var(--ink);">
+        OPPONENTS
+      </h2>
+      <p style="font-family: var(--font-marker); font-size: 1.3rem; color: var(--riso-pink); margin-top: 6px;">
+        ← SWIPE CARDS &bull; <a href="rivals.html" class="doodle-link">VIEW ALL</a> →
+      </p>
+    </div>
+
+    <div class="sticker-sheet-container" id="stickerSheet">
+      
+      <!-- Rival 1 -->
+      <div class="rival-card" style="transform: rotate(-3deg);">
+        <div style="width:100%; height:160px; background:#F4EEDC; border:3px solid var(--ink); display:flex; align-items:center; justify-content:center; margin-bottom:12px;">
+          <svg viewBox="0 0 100 100" style="width:110px; height:110px;">
+            <circle cx="50" cy="45" r="28" fill="#F5EFDD" stroke="#1A1A1A" stroke-width="3"/>
+            <path d="M22 35 Q 35 15 50 18 Q 65 12 78 35" fill="#1A1A1A"/>
+            <circle cx="42" cy="42" r="3" fill="#1A1A1A"/><circle cx="58" cy="42" r="3" fill="#1A1A1A"/>
+            <path d="M42 55 Q 50 62 60 54" stroke="#1A1A1A" stroke-width="3" fill="none"/>
+            <rect x="36" y="73" width="28" height="24" fill="#FF6B35" stroke="#1A1A1A" stroke-width="3"/>
+          </svg>
+        </div>
+        <h3 style="font-family:var(--font-display); font-size:1.6rem;">ROHAN</h3>
+        <div style="font-family:var(--font-body); font-weight:800; font-size:0.85rem; color:var(--riso-teal);">PEN: REYNOLDS 045</div>
+        <p style="font-family:var(--font-hand); font-size:1.2rem; font-weight:700; color:#333; margin-top:6px;">"Balanced all-rounder"</p>
+      </div>
+
+      <!-- Rival 2 -->
+      <div class="rival-card" style="transform: rotate(3deg);">
+        <div style="width:100%; height:160px; background:#F4EEDC; border:3px solid var(--ink); display:flex; align-items:center; justify-content:center; margin-bottom:12px;">
+          <svg viewBox="0 0 100 100" style="width:110px; height:110px;">
+            <circle cx="50" cy="45" r="28" fill="#F5EFDD" stroke="#1A1A1A" stroke-width="3"/>
+            <path d="M22 35 C 10 20 8 45 18 50" fill="#1A1A1A"/><path d="M78 35 C 90 20 92 45 82 50" fill="#1A1A1A"/>
+            <circle cx="40" cy="44" r="7" stroke="#2E8B8B" stroke-width="2.5" fill="none"/>
+            <circle cx="60" cy="44" r="7" stroke="#2E8B8B" stroke-width="2.5" fill="none"/>
+            <rect x="36" y="73" width="28" height="24" fill="#2E8B8B" stroke="#1A1A1A" stroke-width="3"/>
+          </svg>
+        </div>
+        <h3 style="font-family:var(--font-display); font-size:1.6rem;">PRIYA</h3>
+        <div style="font-family:var(--font-body); font-weight:800; font-size:0.85rem; color:var(--riso-teal);">PEN: PILOT V5</div>
+        <p style="font-family:var(--font-hand); font-size:1.2rem; font-weight:700; color:#333; margin-top:6px;">"Fast speed dart"</p>
+      </div>
+
+      <!-- Rival 11: Samar (Boss) -->
+      <div class="rival-card" style="transform: rotate(-4deg); background: #FFF6E0; border-color: var(--riso-orange);">
+        <div style="width:100%; height:160px; background:#FFE8BF; border:3px solid var(--ink); display:flex; align-items:center; justify-content:center; margin-bottom:12px;">
+          <svg viewBox="0 0 100 100" style="width:110px; height:110px;">
+            <polygon points="35,18 42,28 50,15 58,28 65,18 63,32 37,32" fill="#E8B923" stroke="#1A1A1A" stroke-width="2"/>
+            <circle cx="50" cy="48" r="28" fill="#F5EFDD" stroke="#1A1A1A" stroke-width="3"/>
+            <circle cx="42" cy="46" r="3.5" fill="#1A1A1A"/><circle cx="58" cy="46" r="3.5" fill="#1A1A1A"/>
+            <rect x="36" y="76" width="28" height="24" fill="#FF6B35" stroke="#1A1A1A" stroke-width="3"/>
+          </svg>
+        </div>
+        <h3 style="font-family:var(--font-display); font-size:1.6rem; color: var(--riso-orange);">SAMAR</h3>
+        <div style="font-family:var(--font-body); font-weight:800; font-size:0.85rem; color:var(--riso-orange);">PEN: REYNOLDS TRIMAX</div>
+        <p style="font-family:var(--font-hand); font-size:1.2rem; font-weight:700; color:#333; margin-top:6px;">"Triangular anti-roll"</p>
+      </div>
+
+    </div>
+
+    <div style="text-align: center; margin-top: 30px;">
+      <a href="rivals.html" class="btn-chunky btn-pink">
+        <span>VIEW ALL OPPONENTS →</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       4. ARSENAL TEASER
+       ========================================================================== -->
+  <section class="pens-section" id="arsenal">
+    <div style="max-width: 1200px; margin: 0 auto; position: relative; z-index: 2; padding-left: clamp(20px, 10vw, 120px);">
+      <div class="sticker-burst" style="transform: rotate(-10deg); margin-bottom: 12px;">ARSENAL</div>
+      <h2 style="font-family: var(--font-display); font-size: clamp(2.5rem, 6vw, 4.5rem); text-transform: uppercase; color: var(--ink);">
+        PEN ARSENAL
+      </h2>
+      <p style="font-family: var(--font-hand); font-size: 1.4rem; font-weight: 700; color: #555;">
+        Select your favorite pen.
+      </p>
+
+      <div class="pens-scatter-grid">
+        <div class="pen-doodle-card pen-card-1">
+          <div class="tape-strip" style="top: -14px; left: 20px; transform: rotate(-5deg);"></div>
+          <img src="/assets/art/pen-reynolds045.webp" alt="Reynolds 045" style="width:100%; height:65px; object-fit:contain;" />
+          <h4 style="font-family:var(--font-display); font-size:1.5rem; margin-top:8px;">REYNOLDS 045</h4>
+          <p style="font-family:var(--font-hand); font-size:1.15rem; font-weight:700; color:var(--riso-teal);">Balanced All-Rounder</p>
+        </div>
+
+        <div class="pen-doodle-card pen-card-2">
+          <div class="staple" style="top: 8px; right: 12px;"></div>
+          <img src="/assets/art/pen-gripper.webp" alt="Cello Gripper" style="width:100%; height:65px; object-fit:contain;" />
+          <h4 style="font-family:var(--font-display); font-size:1.5rem; margin-top:8px;">CELLO GRIPPER</h4>
+          <p style="font-family:var(--font-hand); font-size:1.15rem; font-weight:700; color:var(--riso-orange);">High Table Grip</p>
+        </div>
+
+        <div class="pen-doodle-card pen-card-3">
+          <div class="tape-strip" style="top: -14px; right: 15px; transform: rotate(8deg);"></div>
+          <img src="/assets/art/pen-pilotV5.webp" alt="Pilot V5" style="width:100%; height:65px; object-fit:contain;" />
+          <h4 style="font-family:var(--font-display); font-size:1.5rem; margin-top:8px;">PILOT V5</h4>
+          <p style="font-family:var(--font-hand); font-size:1.15rem; font-weight:700; color:var(--riso-pink);">Fast Speed Dart</p>
+        </div>
+      </div>
+
+      <div style="margin-top: 40px;">
+        <a href="pens.html" class="btn-chunky btn-orange" style="font-size: 1.3rem;">
+          <span>INSPECT ALL 12 PENS →</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       GLOBAL FOOTER
+       ========================================================================== -->
+  <footer class="site-footer">
+    <div class="footer-backcover-box">
+      <div class="tape-strip" style="top: -14px; left: 30px; transform: rotate(-15deg);"></div>
+      <div class="tape-strip" style="top: -14px; right: 30px; transform: rotate(12deg);"></div>
+
+      <h2 style="font-family: var(--font-display); font-size: clamp(2.8rem, 6vw, 4.5rem); text-transform: uppercase;">
+        READY FOR <span style="color: var(--riso-orange);">PEN FIGHT?</span>
+      </h2>
+
+      <div class="footer-nav-links">
+        <a href="funky.html">Home</a>
+        <a href="rules.html">Rules</a>
+        <a href="rivals.html">Rivals</a>
+        <a href="pens.html">Arsenal</a>
+        <a href="download.html">Download</a>
+      </div>
+
+      <a href="/" class="btn-chunky btn-teal" style="font-size: 1.4rem; padding: 14px 36px;">
+        <span>PLAY NOW ↴</span>
+      </a>
+
+      <div class="footer-closing-tape">
+        ★ PEN FIGHT ★
+      </div>
+    </div>
+
+    <p class="footer-copyright">
+      Pen Fight &bull; Play Online 3D
+    </p>
+  </footer>
+
+  <script>
+    const slider = document.getElementById('stickerSheet');
+    let isDown = false;
+    let startX, scrollLeft;
+    if (slider) {
+      slider.addEventListener('mousedown', (e) => {
+        isDown = true;
+        startX = e.pageX - slider.offsetLeft;
+        scrollLeft = slider.scrollLeft;
+      });
+      slider.addEventListener('mouseleave', () => { isDown = false; });
+      slider.addEventListener('mouseup', () => { isDown = false; });
+      slider.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - slider.offsetLeft;
+        const walk = (x - startX) * 1.6;
+        slider.scrollLeft = scrollLeft - walk;
+      });
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Play &amp; Download — Pen Fight</title>
+  <meta name="description" content="Play Pen Fight in browser or install on desktop and mobile." />
+  <link rel="stylesheet" href="/pen-fight-tokens.css" />
+  <link rel="stylesheet" href="/assets/comic-nav.css" />
+  <link rel="stylesheet" href="funky-system.css" />
+  <script src="/assets/comic-nav.js" defer></script>
+
+  <style>
+    .download-hero-box {
+      max-width: 900px;
+      margin: 30px auto 70px;
+      padding: 0 20px;
+      text-align: center;
+      position: relative;
+    }
+
+    .mascot-app-frame {
+      width: 220px;
+      height: 220px;
+      background: var(--pf-paper-light);
+      border: var(--pf-border-thick);
+      border-radius: 40px;
+      box-shadow: 10px 10px 0px var(--pf-orange);
+      margin: 0 auto 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transform: rotate(-4deg);
+      transition: transform var(--pf-duration-base) var(--pf-ease-bounce);
+    }
+    .mascot-app-frame:hover {
+      transform: rotate(2deg) scale(1.06);
+    }
+
+    .social-proof-sticker {
+      position: absolute;
+      top: -20px;
+      right: -30px;
+      background: var(--pf-orange);
+      color: var(--pf-paper-light);
+      font-family: var(--pf-font-accent);
+      font-size: 1.1rem;
+      padding: 8px 18px;
+      border: var(--pf-border);
+      box-shadow: 4px 4px 0px var(--pf-ink);
+      transform: rotate(14deg);
+    }
+
+    .download-options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 26px;
+      margin: 40px 0;
+    }
+
+    .download-card {
+      background: var(--pf-paper-light);
+      border: var(--pf-border-thick);
+      padding: 32px 24px;
+      box-shadow: 8px 8px 0px var(--pf-ink);
+      position: relative;
+      transition: transform var(--pf-duration-base) var(--pf-ease-bounce);
+    }
+    .download-card:hover {
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: 12px 12px 0px var(--pf-ink);
+    }
+
+    .dl-card-1 { transform: rotate(-2deg); }
+    .dl-card-2 { transform: rotate(2.5deg); border-color: var(--pf-orange); background: var(--pf-orange-light); }
+    .dl-card-3 { transform: rotate(-2deg); }
+  </style>
+</head>
+<body class="theme-orange">
+
+  <!-- ==========================================================================
+       DOWNLOAD HERO
+       ========================================================================== -->
+  <main class="download-hero-box">
+    <div class="tape-strip" style="top: -10px; left: 10px; transform: rotate(-25deg);"></div>
+
+    <!-- App Mascot Frame -->
+    <div class="mascot-app-frame">
+      <div class="social-proof-sticker">
+        ★ PLAY ONLINE
+      </div>
+      <!-- Hand-Drawn Pen Fight Mascot Icon -->
+      <svg width="150" height="150" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="42" fill="#F5EFDD" stroke="#1A1A1A" stroke-width="3"/>
+        <line x1="20" y1="75" x2="80" y2="25" stroke="#FF6B35" stroke-width="8" stroke-linecap="round"/>
+        <polygon points="80,25 88,20 85,32" fill="#1A1A1A"/>
+        <circle cx="45" cy="40" r="5" fill="#1A1A1A"/>
+        <circle cx="60" cy="52" r="5" fill="#1A1A1A"/>
+        <!-- Action stars -->
+        <polygon points="25,30 28,38 36,40 30,46 32,54 25,48 18,54 20,46 14,40 22,38" fill="#E8B923" stroke="#1A1A1A" stroke-width="1.5"/>
+      </svg>
+    </div>
+
+    <h1 class="page-hero-title">GET PEN FIGHT</h1>
+    <div>
+      <p class="page-hero-subtitle">
+        INSTANT PLAY &bull; NO ADS &bull; 3D PEN FIGHT
+      </p>
+    </div>
+
+    <!-- Download Options Cards -->
+    <div class="download-options-grid">
+      
+      <!-- Option 1: Web Play -->
+      <div class="download-card dl-card-1">
+        <div class="tape-strip" style="top: -12px; left: 20px; transform: rotate(-5deg);"></div>
+        <div class="sticker-burst" style="position: absolute; top: -14px; right: -12px; width: 65px; height: 65px; font-size: 0.85rem; background: var(--riso-mustard);">
+          FAST!
+        </div>
+        <h3 style="font-family: var(--font-display); font-size: 1.8rem;">WEB BROWSER</h3>
+        <p style="font-family: var(--font-hand); font-size: 1.25rem; font-weight: 700; color: #444; margin: 12px 0 20px;">
+          Runs instantly in Chrome, Safari, Firefox.
+        </p>
+        <a href="/" class="btn-chunky btn-orange" style="width: 100%; font-size: 1.2rem;">
+          <span>PLAY WEB 3D ↴</span>
+        </a>
+      </div>
+
+      <!-- Option 2: Desktop PWA -->
+      <div class="download-card dl-card-2">
+        <div class="tape-strip" style="top: -12px; right: 20px; transform: rotate(4deg);"></div>
+        <div class="sticker-burst" style="position: absolute; top: -14px; right: -12px; width: 65px; height: 65px; font-size: 0.85rem; background: var(--riso-pink); color:#fff;">
+          PWA
+        </div>
+        <h3 style="font-family: var(--font-display); font-size: 1.8rem; color: var(--riso-orange);">DESKTOP APP</h3>
+        <p style="font-family: var(--font-hand); font-size: 1.25rem; font-weight: 700; color: #444; margin: 12px 0 20px;">
+          Install app for smooth offline matches.
+        </p>
+        <button class="btn-chunky btn-teal" style="width: 100%; font-size: 1.2rem;" onclick="alert('To install PWA: Click the Install icon in your browser URL bar!')">
+          <span>INSTALL APP ↴</span>
+        </button>
+      </div>
+
+      <!-- Option 3: Mobile Touch -->
+      <div class="download-card dl-card-3">
+        <div class="staple" style="top: 8px; left: 12px;"></div>
+        <h3 style="font-family: var(--font-display); font-size: 1.8rem;">MOBILE TOUCH</h3>
+        <p style="font-family: var(--font-hand); font-size: 1.25rem; font-weight: 700; color: #444; margin: 12px 0 20px;">
+          Play on phone with touch controls.
+        </p>
+        <a href="/" class="btn-chunky btn-pink" style="width: 100%; font-size: 1.2rem;">
+          <span>OPEN TOUCH 3D ↴</span>
+        </a>
+      </div>
+
+    </div>
+
+    <!-- Post-It Specs Note -->
+    <div class="post-it-card" style="max-width: 600px; margin: 0 auto; text-align: left;">
+      <div class="tape-strip" style="top: -12px; right: 25px; transform: rotate(5deg);"></div>
+      <h4 style="font-family: var(--font-marker); font-size: 1.3rem; color: var(--riso-orange); margin-bottom: 6px;">
+        📝 NOTE:
+      </h4>
+      <p style="font-family: var(--font-hand); font-size: 1.3rem; font-weight: 700; color: #222; line-height: 1.35;">
+        Runs smoothly in 3D at 60FPS on any device.
+      </p>
+    </div>
+
+  </main>
+
+  <!-- ==========================================================================
+       GLOBAL FOOTER
+       ========================================================================== -->
+  <footer class="site-footer">
+    <div class="footer-backcover-box">
+      <div class="tape-strip" style="top: -14px; left: 30px; transform: rotate(-15deg);"></div>
+      <div class="tape-strip" style="top: -14px; right: 30px; transform: rotate(12deg);"></div>
+
+      <h2 style="font-family: var(--font-display); font-size: clamp(2.4rem, 5vw, 3.8rem); text-transform: uppercase;">
+        READY TO <span style="color: var(--riso-orange);">PLAY?</span>
+      </h2>
+
+      <div class="footer-nav-links">
+        <a href="/index.html">Arena</a>
+        <a href="/pens.html">Arsenal</a>
+        <a href="/rules.html">Rules</a>
+        <a href="/download.html">Download</a>
+      </div>
+
+      <a href="/" class="btn-chunky btn-orange" style="font-size: 1.4rem; padding: 14px 36px;">
+        <span>PLAY NOW ↴</span>
+      </a>
+
+      <div class="footer-closing-tape">
+        ★ PEN FIGHT ★
+      </div>
+    </div>
+
+    <p class="footer-copyright">
+      Pen Fight &bull; Play Online 3D
+    </p>
+  </footer>
+
+</body>
+</html>

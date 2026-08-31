@@ -1,0 +1,2705 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Pen Fight 3D · Play Online</title>
+  <meta name="description" content="Relive classic Indian school days pen fight! Real-time 3D physics, 12 iconic pens (Reynolds Trimax, Cello Gripper, Pilot V5), 1P solo duels & P2P multiplayer." />
+  <link rel="canonical" href="https://peenfight.vercel.app/" />
+  <meta name="theme-color" content="#FF6B35" />
+  <meta name="color-scheme" content="light dark" />
+
+  <!-- Open Graph & Social Previews (LinkedIn, Twitter, WhatsApp) -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="⚡ PEN FIGHT 3D · Iconic Indian Classroom Game" />
+  <meta property="og:description" content="Relive classic Indian school days pen fight! Real-time 3D physics, 12 iconic pens (Reynolds Trimax, Cello Gripper, Pilot V5), 1P solo duels & P2P multiplayer." />
+  <meta property="og:url" content="https://peenfight.vercel.app/" />
+  <meta property="og:image" content="https://peenfight.vercel.app/apple-touch-icon.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="⚡ PEN FIGHT 3D · Iconic Indian Classroom Game" />
+  <meta name="twitter:description" content="Relive classic Indian school days pen fight! Real-time 3D physics, 12 iconic pens (Reynolds Trimax, Cello Gripper, Pilot V5), 1P solo duels & P2P multiplayer." />
+  <meta name="twitter:image" content="https://peenfight.vercel.app/apple-touch-icon.png" />
+  <link rel="icon" href="/favicon-32.png" sizes="32x32" />
+  <link rel="icon" href="/favicon-16.png" sizes="16x16" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Pen Fight" />
+  <link rel="preload" as="image" href="/assets/art/school-classroom-door.jpg" fetchpriority="high" />
+
+  <!-- Google Fonts: Bangers, Permanent Marker, Space Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Permanent+Marker&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+
+  <!-- Unified Comic Zine Design Tokens & Stylesheets -->
+  <link rel="stylesheet" href="/pen-fight-tokens.css">
+  <link rel="stylesheet" href="/assets/comic-nav.css">
+  <link rel="stylesheet" crossorigin href="/assets/index-D_gjLeFT.css">
+  <link rel="stylesheet" href="/assets/comic-hud.css">
+
+  <!-- Security Shield & Anti-Inspection Protection -->
+  <script src="/assets/securityShield.js"></script>
+
+  <!-- Intercept & stub original Supabase calls (must load BEFORE bundle) -->
+  <script src="/assets/supabase-shim.js"></script>
+  <script src="/assets/peerjs.min.js"></script>
+  <script src="/assets/MultiplayerManager.js"></script>
+  <script type="module" crossorigin src="/assets/index-qt_1fHzp.js"></script>
+  <script type="module" src="/assets/ArenaBackdrop.js"></script>
+  <script src="/assets/comic-nav.js" defer></script>
+
+  <style>
+    /* Anti-Inspection & Copy Protection */
+    *, *::before, *::after {
+      -webkit-user-select: none !important;
+      user-select: none !important;
+      -webkit-user-drag: none !important;
+      -webkit-touch-callout: none !important;
+    }
+    input, textarea {
+      -webkit-user-select: auto !important;
+      user-select: auto !important;
+    }
+
+    /* Dark Background & Transparent Canvas Container */
+    html, body {
+      background: #121418 !important;
+      color-scheme: dark;
+    }
+    #app {
+      background: transparent !important;
+    }
+    /* Remove Sign In buttons, cues, and legacy bottom-left penchip tin box */
+    .signintop,
+    .boardbtn.signintop,
+    .howlink.presentcue,
+    [data-act="present"],
+    #pf-corridor-signin,
+    .corridorsigninchip,
+    .corridorhi-nudge,
+    .corridor-signin-wrap,
+    a[href*="google"],
+    button[data-act="present"],
+    .penchip,
+    button.penchip,
+    [data-act="box"],
+    .boxbtn,
+    .pocketchip {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      height: 0 !important;
+      width: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
+    /* Modal & Room Flow Comic Styles */
+    .count-grid-8 {
+      grid-template-columns: repeat(4, 1fr) !important;
+    }
+    @media (max-width: 600px) {
+      .count-grid-8 {
+        grid-template-columns: repeat(2, 1fr) !important;
+      }
+    }
+
+    .p-sub {
+      font-size: 8px;
+      font-weight: 700;
+      color: var(--pf-ink-muted);
+      text-transform: uppercase;
+    }
+
+    .room-lobby-body {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .room-share-card {
+      background: var(--pf-paper);
+      border: var(--pf-border);
+      border-radius: var(--pf-radius-md);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: var(--pf-shadow-flat);
+    }
+
+    .share-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .share-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--pf-ink-muted);
+      text-transform: uppercase;
+    }
+
+    .share-url {
+      font-family: var(--pf-font-body);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--pf-teal-dark);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .btn-copy-link {
+      background: var(--pf-mustard);
+      border: var(--pf-border-thin);
+      border-radius: var(--pf-radius-sm);
+      box-shadow: 2px 2px 0 var(--pf-ink);
+      font-family: var(--pf-font-body);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--pf-ink);
+      padding: 6px 12px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: transform var(--pf-duration-fast) ease;
+    }
+    .btn-copy-link:hover {
+      transform: translateY(-1px);
+      box-shadow: 3px 3px 0 var(--pf-ink);
+    }
+
+    .connected-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .connected-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .connected-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--pf-ink-muted);
+      text-transform: uppercase;
+    }
+
+    .connected-pill {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--pf-teal-dark);
+      background: var(--pf-teal-light);
+      border: 1px solid var(--pf-teal);
+      border-radius: var(--pf-radius-sm);
+      padding: 2px 6px;
+    }
+
+    .connected-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 160px;
+      overflow-y: auto;
+    }
+
+    .connected-player-row {
+      background: var(--pf-paper);
+      border: var(--pf-border-thin);
+      border-radius: var(--pf-radius-sm);
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .connected-player-row.is-host {
+      border-color: var(--pf-orange);
+      background: var(--pf-orange-light);
+    }
+
+    .c-player-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .c-name {
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--pf-ink);
+    }
+
+    .c-role {
+      font-size: 9px;
+      color: var(--pf-ink-muted);
+      display: block;
+    }
+
+    .c-status-badge {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--pf-teal-dark);
+    }
+
+    .btn-start-host {
+      width: 100%;
+      background: var(--pf-orange);
+      color: var(--pf-paper-light);
+      box-shadow: 3px 3px 0 var(--pf-ink), 6px 6px 0 var(--pf-orange-dark);
+      font-size: 13px;
+      padding: 12px;
+    }
+
+    /* Pen Selection Flow in Lobby */
+    .timer-countdown-box {
+      background: var(--pf-mustard-light);
+      border: var(--pf-border-thin);
+      border-radius: var(--pf-radius-md);
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .timer-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .timer-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--pf-ink);
+    }
+
+    .timer-number {
+      font-family: var(--pf-font-display);
+      font-size: 20px;
+      color: var(--pf-orange);
+    }
+
+    .timer-bar-track {
+      width: 100%;
+      height: 8px;
+      background: var(--pf-paper);
+      border: 1.5px solid var(--pf-ink);
+      border-radius: var(--pf-radius-pill);
+      overflow: hidden;
+    }
+
+    .timer-bar-fill {
+      height: 100%;
+      background: var(--pf-orange);
+      transition: width 1s linear;
+    }
+
+    .player-slots-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin: 10px 0;
+    }
+    @media (max-width: 500px) {
+      .player-slots-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .player-pen-slot {
+      background: var(--pf-paper);
+      border: var(--pf-border);
+      border-radius: var(--pf-radius-md);
+      padding: 8px 10px;
+      box-shadow: 2px 2px 0 var(--pf-ink);
+    }
+
+    .slot-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .slot-badge {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--pf-ink);
+      background: var(--pf-mustard);
+      border: 1px solid var(--pf-ink);
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+
+    .slot-sub {
+      font-size: 8px;
+      color: var(--pf-ink-muted);
+    }
+
+    .slot-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      background: var(--pf-paper-light);
+      border: 1.5px solid var(--pf-ink);
+      border-radius: var(--pf-radius-sm);
+      padding: 6px 8px;
+      transition: transform var(--pf-duration-fast) ease;
+    }
+    .slot-content:hover {
+      transform: translateY(-1px);
+      box-shadow: 2px 2px 0 var(--pf-ink);
+    }
+
+    .slot-pen-img {
+      width: 44px;
+      height: 28px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3));
+    }
+
+    .slot-pen-name {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--pf-ink);
+      display: block;
+    }
+
+    .slot-pen-change {
+      font-size: 9px;
+      color: var(--pf-teal-dark);
+      display: block;
+    }
+
+    .hub-random-btn {
+      background: var(--pf-mustard);
+      border: var(--pf-border-thin);
+      border-radius: var(--pf-radius-sm);
+      box-shadow: 2px 2px 0 var(--pf-ink);
+      font-family: var(--pf-font-body);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--pf-ink);
+      padding: 4px 8px;
+      cursor: pointer;
+    }
+
+    .btn-start-battle {
+      width: 100%;
+      background: var(--pf-orange);
+      color: var(--pf-paper-light);
+      box-shadow: 3px 3px 0 var(--pf-ink), 6px 6px 0 var(--pf-orange-dark);
+      font-size: 13px;
+      padding: 12px;
+    }
+
+    /* Pen Picker Modal */
+    .picker-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 30000;
+      background: rgba(0, 0, 0, 0.6);
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .picker-overlay.open {
+      display: flex;
+    }
+
+    .picker-modal {
+      background: var(--pf-paper-light);
+      border: var(--pf-border-thick);
+      border-radius: var(--pf-radius-lg);
+      box-shadow: 6px 6px 0 var(--pf-ink), 10px 10px 0 var(--pf-orange);
+      max-width: 520px;
+      width: 100%;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      padding: 18px;
+      box-sizing: border-box;
+    }
+
+    .picker-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--pf-ink);
+    }
+
+    .picker-title {
+      font-family: var(--pf-font-display);
+      font-size: 20px;
+      color: var(--pf-ink);
+    }
+
+    .picker-close-btn {
+      background: var(--pf-paper);
+      border: var(--pf-border-thin);
+      border-radius: var(--pf-radius-sm);
+      box-shadow: 2px 2px 0 var(--pf-ink);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 2px 8px;
+    }
+
+    .picker-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .picker-item {
+      background: var(--pf-paper);
+      border: var(--pf-border-thin);
+      border-radius: var(--pf-radius-sm);
+      padding: 6px 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 var(--pf-ink);
+      transition: transform var(--pf-duration-fast) ease;
+    }
+    .picker-item:hover {
+      transform: translateY(-2px);
+      background: var(--pf-mustard-light);
+    }
+
+    .picker-item-img {
+      width: 36px;
+      height: 24px;
+      object-fit: contain;
+    }
+
+    .picker-item-name {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--pf-ink);
+    }
+
+    .pf-score-exit-btn {
+      font-family: var(--pf-font-body);
+      font-size: 11px;
+      font-weight: 800;
+      background: var(--pf-paper-light);
+      color: var(--pf-color-danger, #C13B2E);
+      border: 2px solid var(--pf-color-danger, #C13B2E);
+      border-radius: var(--pf-radius-pill);
+      padding: 4px 10px;
+      box-shadow: 2px 2px 0 var(--pf-ink);
+      cursor: pointer;
+      display: none !important;
+      align-items: center;
+      gap: 4px;
+      margin-left: 6px;
+      transition: transform var(--pf-duration-fast) ease, background var(--pf-duration-fast) ease;
+    }
+    .pf-score-exit-btn.visible {
+      display: inline-flex !important;
+    }
+    .pf-score-exit-btn:hover {
+      background: #FFE8DF;
+      transform: translateY(-1px);
+    }
+
+    .pf-btn-exit-match {
+      display: none !important;
+    }
+    .pf-btn-exit-match.visible {
+      display: inline-flex !important;
+    }
+
+    /* Exit Confirmation Modal */
+    .exit-modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 40000;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .exit-confirm-card {
+      background: var(--pf-paper-light);
+      border: var(--pf-border-thick);
+      border-radius: var(--pf-radius-lg);
+      box-shadow: 6px 6px 0 var(--pf-ink), 10px 10px 0 var(--pf-orange);
+      max-width: 440px;
+      width: 100%;
+      padding: 24px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .exit-modal-badge {
+      align-self: center;
+      background: var(--pf-orange);
+      color: var(--pf-paper-light);
+      font-family: var(--pf-font-body);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border: 1.5px solid var(--pf-ink);
+      border-radius: 4px;
+      box-shadow: 2px 2px 0 var(--pf-ink);
+    }
+
+    .exit-modal-title {
+      font-family: var(--pf-font-display);
+      font-size: 26px;
+      color: var(--pf-ink);
+      margin: 0;
+    }
+
+    .exit-modal-desc {
+      font-family: var(--pf-font-body);
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--pf-ink-soft);
+      margin: 0;
+    }
+
+    .exit-modal-btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .btn-cancel-exit {
+      flex: 1;
+      background: var(--pf-teal);
+      color: var(--pf-paper-light);
+      border: var(--pf-border);
+      border-radius: var(--pf-radius-pill);
+      box-shadow: 3px 3px 0 var(--pf-ink);
+      font-family: var(--pf-font-body);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    .btn-confirm-exit {
+      flex: 1;
+      background: var(--pf-orange);
+      color: var(--pf-paper-light);
+      border: var(--pf-border);
+      border-radius: var(--pf-radius-pill);
+      box-shadow: 3px 3px 0 var(--pf-ink);
+      font-family: var(--pf-font-body);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    /* Game Over & Rematch Styles */
+    .game-over-hub {
+      padding: 16px 20px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .game-over-trophy {
+      font-size: 48px;
+      line-height: 1;
+      display: block;
+      margin: 0 auto 4px;
+      filter: drop-shadow(2px 2px 0 var(--pf-ink));
+    }
+    .game-over-title {
+      font-family: var(--pf-font-display);
+      font-size: 28px;
+      line-height: 1.1;
+      color: var(--pf-ink);
+      margin: 0;
+    }
+    .game-over-sub {
+      font-family: var(--pf-font-body);
+      font-size: 12px;
+      color: var(--pf-ink-soft);
+      margin: 4px 0 0;
+    }
+    .game-over-scorebox {
+      background: var(--pf-paper-light);
+      border: var(--pf-border);
+      border-radius: var(--pf-radius-md);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      box-shadow: 2px 2px 0 var(--pf-ink);
+      margin: 4px 0;
+    }
+    .game-over-scorebox .score-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .game-over-scorebox .s-name {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--pf-ink-muted);
+      text-transform: uppercase;
+    }
+    .game-over-scorebox .s-num {
+      font-family: var(--pf-font-display);
+      font-size: 32px;
+      line-height: 1;
+      color: var(--pf-orange);
+    }
+    .game-over-scorebox .s-divider {
+      font-family: var(--pf-font-display);
+      font-size: 26px;
+      color: var(--pf-ink-muted);
+    }
+    .game-over-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .btn-game-rematch {
+      width: 100%;
+      background: var(--pf-orange);
+      color: #fff;
+      border: var(--pf-border);
+      border-radius: var(--pf-radius-pill);
+      font-family: var(--pf-font-body);
+      font-size: 13px;
+      font-weight: 800;
+      padding: 12px;
+      cursor: pointer;
+      box-shadow: 3px 3px 0 var(--pf-ink), 6px 6px 0 var(--pf-orange-dark);
+      transition: transform var(--pf-duration-fast) ease;
+    }
+    .btn-game-rematch:hover {
+      transform: translateY(-2px);
+    }
+    .btn-game-leave {
+      width: 100%;
+      background: var(--pf-paper);
+      color: var(--pf-ink);
+      border: var(--pf-border-thin);
+      border-radius: var(--pf-radius-pill);
+      font-family: var(--pf-font-body);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 9px;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 var(--pf-ink);
+    }
+    .rematch-status-pill {
+      background: var(--pf-mustard-light);
+      border: 1.5px dashed var(--pf-orange);
+      border-radius: var(--pf-radius-pill);
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--pf-ink);
+      margin-top: 6px;
+    }
+
+    /* Enter Room ID Modal Styles */
+    .join-room-hub {
+      padding: 16px 20px;
+    }
+    .join-room-input {
+      width: 100%;
+      box-sizing: border-box;
+      background: var(--pf-paper-light);
+      border: 2px solid var(--pf-ink);
+      border-radius: var(--pf-radius-md);
+      padding: 12px 14px;
+      font-family: var(--pf-font-display);
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-align: center;
+      color: var(--pf-orange);
+      box-shadow: inset 2px 2px 0 rgba(0,0,0,0.08);
+      outline: none;
+      transition: border-color var(--pf-duration-fast) ease;
+    }
+    .join-room-input:focus {
+      border-color: var(--pf-orange);
+      box-shadow: inset 2px 2px 0 rgba(0,0,0,0.08), 0 0 0 3px var(--pf-mustard-light);
+    }
+  </style>
+  <!-- Real-Time WebRTC P2P Multiplayer Engine -->
+  <script src="/assets/peerjs.min.js"></script>
+  <script src="/assets/MultiplayerManager.js"></script>
+  <!-- Manga & Chalkboard Backdrop System -->
+  <script src="/assets/ArenaBackdrop.js"></script>
+</head>
+<body>
+  <div id="app"></div>
+  <nav class="pf-legal-crawl" aria-label="legal">
+    <a href="/terms/">Terms of use</a>
+    <a href="/privacy/">Privacy policy</a>
+  </nav>
+  <div class="vignette"></div>
+
+  <!-- Live Match Comic Scoreboard (Front of Table) -->
+  <div id="pf-live-scoreboard" class="pf-scoreboard">
+    <!-- Player 1 / You -->
+    <div class="score-card p1-card">
+      <div class="score-avatar-wrap">
+        <img id="score-p1-img" src="/assets/art/pen-gripper.webp" alt="Pen" class="score-pen-thumb" />
+      </div>
+      <div class="score-info">
+        <span class="score-player-name" id="score-p1-name">YOU</span>
+        <span class="score-pen-name" id="score-p1-pen">Gripper</span>
+      </div>
+      <div class="score-dots" id="score-p1-dots">
+        <span class="score-pip"></span>
+        <span class="score-pip"></span>
+      </div>
+    </div>
+
+    <!-- Center Badge / Round Banner -->
+    <div class="score-center-banner">
+      <span class="score-round-tag" id="score-round-text">ROUND 1</span>
+      <span class="score-vs-tag">⚡ VS ⚡</span>
+    </div>
+
+    <!-- Player 2 / Rival -->
+    <div class="score-card p2-card">
+      <div class="score-dots" id="score-p2-dots">
+        <span class="score-pip"></span>
+        <span class="score-pip"></span>
+      </div>
+      <div class="score-info text-right">
+        <span class="score-player-name" id="score-p2-name">BOT RIVAL</span>
+        <span class="score-pen-name" id="score-p2-pen">Pilot V5</span>
+      </div>
+      <div class="score-avatar-wrap">
+        <img id="score-p2-img" src="/assets/art/pen-pilotV5.webp" alt="Pen" class="score-pen-thumb" />
+      </div>
+    </div>
+
+    <!-- Exit Match Button (Top Scoreboard) -->
+    <button type="button" class="pf-score-exit-btn" id="pf-score-exit-btn" onclick="window.exitMatchToMainMenu()" title="Exit Match" style="display:none;">
+      🚪 EXIT
+    </button>
+  </div>
+
+  <!-- Floating Quick Action Buttons (Always Visible on Desk) -->
+  <div id="pf-arena-quick-actions" class="pf-arena-quick-actions">
+    <button type="button" class="pf-quick-btn pf-btn-exit-match" id="pf-btn-exit-match" onclick="window.exitMatchToMainMenu()" style="display:none; background:#FFE8DF; color:#C13B2E; border:2px solid #C13B2E;">
+      🚪 EXIT MATCH
+    </button>
+    <button type="button" class="pf-quick-btn pf-btn-create-room" onclick="window.showFriendSetup()">
+      👥 CREATE MULTIPLAYER ROOM
+    </button>
+    <button type="button" class="pf-quick-btn pf-btn-join-room" onclick="window.showJoinRoomModal()" style="background:var(--pf-paper); color:var(--pf-ink); border:var(--pf-border-thin);">
+      🔑 ENTER ROOM ID
+    </button>
+    <button type="button" class="pf-quick-btn pf-btn-open-playbook" onclick="window.renderArcadeHub()">
+      📖 PLAYBOOK / MODES
+    </button>
+  </div>
+
+  <!-- Real-Time Voice Chat Control Bar (WebRTC P2P) -->
+  <div id="pf-voice-hud" class="pf-voice-hud">
+    <button id="pf-voice-mic-btn" type="button" class="voice-btn mic-muted" onclick="window.toggleVoiceMic()" title="Toggle Microphone">
+      <span class="voice-btn-icon" id="pf-mic-icon">🔇</span>
+      <span class="voice-btn-label" id="pf-mic-label">MIC OFF</span>
+    </button>
+    <button id="pf-voice-speaker-btn" type="button" class="voice-btn speaker-active" onclick="window.toggleVoiceSpeaker()" title="Toggle Speaker / Sound">
+      <span class="voice-btn-icon" id="pf-speaker-icon">🔊</span>
+      <span class="voice-btn-label" id="pf-speaker-label">SOUND ON</span>
+    </button>
+  </div>
+
+  <audio id="pf-remote-voice-audio" autoplay playsinline style="display:none;"></audio>
+
+  <script>
+    // Global Master 12 Pens Roster
+    const ALL_12_PENS = [
+      { id: "gripper", name: "Cello Gripper", short: "Gripper", img: "/assets/art/pen-gripper.webp", trait: "High Table Grip" },
+      { id: "pilotV5", name: "Pilot V5", short: "Pilot V5", img: "/assets/art/pen-pilotV5.webp", trait: "Fast Speed Dart" },
+      { id: "reynolds-trimax", name: "Reynolds Trimax", short: "Trimax", img: "/assets/art/pen-reynolds-trimax.webp", trait: "Anti-Roll Body" },
+      { id: "reynolds045", name: "Reynolds 045", short: "045", img: "/assets/art/pen-reynolds045.webp", trait: "Balanced All-Rounder" },
+      { id: "parker", name: "Parker Vector", short: "Vector", img: "/assets/art/pen-parker.webp", trait: "Heavy Steel Momentum" },
+      { id: "megatop", name: "Montex Megatop", short: "Megatop", img: "/assets/art/pen-megatop.webp", trait: "Curved Trick Shots" },
+      { id: "addgel", name: "Add Gel", short: "Add Gel", img: "/assets/art/pen-addgel.webp", trait: "Solid Mass Strike" },
+      { id: "classmate-octane", name: "Classmate Octane", short: "Octane", img: "/assets/art/pen-classmate-octane.webp", trait: "High Pinball Bounce" },
+      { id: "flair-writometer", name: "Flair Writometer", short: "Writometer", img: "/assets/art/pen-flair-writometer.webp", trait: "Long Distance Glide" },
+      { id: "cello-butterflow", name: "Cello Butterflow", short: "Butterflow", img: "/assets/art/pen-cello-butterflow.webp", trait: "Impact Shock Absorber" },
+      { id: "linc-ocean", name: "Linc Ocean", short: "Ocean", img: "/assets/art/pen-linc-ocean.webp", trait: "Angle Ricochet Deflect" },
+      { id: "reynolds-racer-gel", name: "Reynolds Racer Gel", short: "Racer Gel", img: "/assets/art/pen-reynolds-racer-gel.webp", trait: "Wide Bulldozer Body" }
+    ];
+
+    function getEquippedPenId() {
+      return localStorage.getItem("pf_equipped_pen") || localStorage.getItem("pf_equipped") || "gripper";
+    }
+
+    function setEquippedPenId(penId) {
+      if (!penId) return;
+      localStorage.setItem("pf_equipped_pen", penId);
+      localStorage.setItem("pf_equipped", penId);
+      try {
+        const col = JSON.parse(localStorage.getItem("pf_collection_v1") || "{}");
+        col.equipped = penId;
+        if (!col.owned || !Array.isArray(col.owned)) col.owned = ["reynolds045"];
+        if (!col.owned.includes(penId)) col.owned.push(penId);
+        localStorage.setItem("pf_collection_v1", JSON.stringify(col));
+      } catch(e) {}
+    }
+
+    window.getEquippedPenId = getEquippedPenId;
+    window.setEquippedPenId = setEquippedPenId;
+
+    window.currentChosenPens = [getEquippedPenId(), "pilotV5", "reynolds-trimax", "reynolds045", "parker", "megatop", "addgel", "classmate-octane"];
+    window.roomPlayerCount = 2;
+    window.matchPlayerCount = 2;
+    window.matchMode = "solo";
+    window.currentRoomCode = "BENCH-7492";
+    window.penSelectionTimerInterval = null;
+    window.penSelectionSecondsRemaining = 8;
+    window.selectingForSlot = null;
+
+    var currentChosenPens = window.currentChosenPens;
+    var roomPlayerCount = 2;
+    var matchPlayerCount = 2;
+    var matchMode = "solo";
+    var currentRoomCode = "BENCH-7492";
+    var penSelectionTimerInterval = null;
+    var penSelectionSecondsRemaining = 8;
+    var selectingForSlot = null;
+
+    // Exit Button Logic (Only visible during active gameplay)
+    window.isMatchActive = false;
+
+    window.showMatchExitButton = function() {
+      window.isMatchActive = true;
+      const btn = document.getElementById("pf-btn-exit-match");
+      if (btn) {
+        btn.style.display = "inline-flex";
+        btn.classList.add("visible");
+      }
+      const scoreBtn = document.getElementById("pf-score-exit-btn");
+      if (scoreBtn) {
+        scoreBtn.style.display = "inline-flex";
+        scoreBtn.classList.add("visible");
+      }
+    };
+
+    window.hideMatchExitButton = function() {
+      window.isMatchActive = false;
+      const btn = document.getElementById("pf-btn-exit-match");
+      if (btn) {
+        btn.style.display = "none";
+        btn.classList.remove("visible");
+      }
+      const scoreBtn = document.getElementById("pf-score-exit-btn");
+      if (scoreBtn) {
+        scoreBtn.style.display = "none";
+        scoreBtn.classList.remove("visible");
+      }
+    };
+
+    window.exitMatchToMainMenu = function() {
+      window._matchLaunched = false;
+      const modal = document.getElementById("pf-exit-confirm-modal");
+      if (modal) {
+        modal.classList.add("open");
+        modal.style.display = "flex";
+      } else {
+        window.confirmExitAndLeaveMatch();
+      }
+    };
+
+    window.closeExitConfirmModal = function() {
+      const modal = document.getElementById("pf-exit-confirm-modal");
+      if (modal) {
+        modal.style.display = "none";
+        modal.classList.remove("open");
+      }
+    };
+
+    window.confirmExitAndLeaveMatch = function() {
+      window.closeExitConfirmModal();
+      window.hideMatchExitButton();
+
+      // Clean up WebRTC multiplayer if in a room
+      if (window.PF_MULTIPLAYER) {
+        window.PF_MULTIPLAYER.disconnect();
+      }
+      if (window.PF_MULTIPLAYER_MATCH) {
+        window.PF_MULTIPLAYER_MATCH.reset();
+      }
+
+      // Reset URL search parameters cleanly back to root
+      try {
+        window.history.pushState({}, '', window.location.pathname);
+      } catch(e) {}
+
+      // Pause singleplayer AI / game controller
+      if (window.__pf && window.__pf.controller) {
+        const ctrl = window.__pf.controller;
+        ctrl.paused = true;
+      }
+
+      // Open Playbook Hub
+      if (window.renderArcadeHub) {
+        window.renderArcadeHub();
+      }
+      window.updateLiveScoreboard();
+    };
+
+    // =========================================================================
+    // REMATCH & GAME OVER FLOW
+    // =========================================================================
+    window.myRematchVote = null;
+    window.peerRematchVote = null;
+
+    window.showGameOverModal = function(winnerRole, scores) {
+      const { wrap, card } = ensureChitCard();
+      card.className = "chit arcade-hub-chit";
+      wrap.className = "chitwrap arcade-hub-wrap";
+      window.myRematchVote = null;
+      window.peerRematchVote = null;
+
+      const isMulti = window.PF_MULTIPLAYER && window.PF_MULTIPLAYER.state === 'OPEN';
+      const isHost = window.PF_MULTIPLAYER ? window.PF_MULTIPLAYER.isHost : true;
+      const myRole = isHost ? "player" : "rival";
+      const localName = (localStorage.getItem("pf_name") || (isHost ? "Host" : "Friend")).toUpperCase();
+      const remoteName = (window.PF_MULTIPLAYER?.remoteName || (isHost ? "Friend" : "Host")).toUpperCase();
+
+      const p1Name = isMulti ? (isHost ? localName : remoteName) : localName;
+      const p2Name = isMulti ? (isHost ? remoteName : localName) : (window.__pf?.controller?.rivalName || "BUNTY").toUpperCase();
+
+      const winnerName = (winnerRole === "player") ? p1Name : p2Name;
+      const isMeWinner = (winnerRole === myRole);
+
+      card.innerHTML = `
+        <div class="arcade-hub game-over-hub">
+          <div class="game-over-header">
+            <span class="game-over-trophy">${isMeWinner ? "🏆" : "🥈"}</span>
+            <h2 class="game-over-title">${winnerName} WON!</h2>
+            <p class="game-over-sub">${isMeWinner ? "👑 Winner!" : "⚡ Play Rematch?"}</p>
+          </div>
+
+          <div class="game-over-scorebox">
+            <div class="score-col">
+              <span class="s-name">${p1Name}</span>
+              <span class="s-num">${(scores && scores.player) ? scores.player : 0}</span>
+            </div>
+            <span class="s-divider">-</span>
+            <div class="score-col">
+              <span class="s-name">${p2Name}</span>
+              <span class="s-num">${(scores && scores.rival) ? scores.rival : 0}</span>
+            </div>
+          </div>
+
+          <div class="game-over-actions">
+            <button type="button" class="btn-game-rematch" id="btn-rematch" onclick="window.requestRematch()">
+              🔄 REMATCH (PLAY AGAIN)
+            </button>
+            <button type="button" class="btn-game-leave" onclick="window.requestLeaveMatch()">
+              🚪 EXIT TO MAIN MENU
+            </button>
+          </div>
+
+          <div class="rematch-status-pill" id="rematch-status-pill" style="display:none;"></div>
+        </div>
+      `;
+
+      wrap.classList.add("show");
+      wrap.removeAttribute("inert");
+      wrap.removeAttribute("aria-hidden");
+    };
+
+    window.requestRematch = function() {
+      window.myRematchVote = 'yes';
+      const btn = document.getElementById("btn-rematch");
+      const pill = document.getElementById("rematch-status-pill");
+
+      const isMulti = window.PF_MULTIPLAYER && window.PF_MULTIPLAYER.state === 'OPEN';
+
+      if (isMulti) {
+        if (btn) {
+          btn.textContent = "⏳ WAITING FOR OPPONENT (1/2 READY)...";
+          btn.style.background = "var(--pf-mustard)";
+          btn.style.color = "var(--pf-ink)";
+          btn.disabled = true;
+        }
+        if (pill) {
+          pill.style.display = "block";
+          pill.textContent = "⏳ You voted for Rematch! Waiting for opponent...";
+        }
+
+        window.PF_MULTIPLAYER.sendRematchVote('yes');
+
+        if (window.peerRematchVote === 'yes') {
+          window.startRematchGame();
+        }
+      } else {
+        window.startRematchGame();
+      }
+    };
+
+    window.requestLeaveMatch = function() {
+      window.myRematchVote = 'leave';
+      const isMulti = window.PF_MULTIPLAYER && window.PF_MULTIPLAYER.state === 'OPEN';
+      if (isMulti) {
+        window.PF_MULTIPLAYER.sendRematchVote('leave');
+      }
+      window.confirmExitAndLeaveMatch();
+    };
+
+    window.startRematchGame = function() {
+      window.myRematchVote = null;
+      window.peerRematchVote = null;
+
+      if (window.PF_MULTIPLAYER_MATCH) {
+        window.PF_MULTIPLAYER_MATCH.reset();
+      }
+
+      if (window.__pf && window.__pf.controller) {
+        const ctrl = window.__pf.controller;
+        if (ctrl.wins) {
+          ctrl.wins = { player: 0, rival: 0 };
+        }
+        ctrl.round = 0;
+      }
+
+      if (window.__pf?.controller?.hud) {
+        window.__pf.controller.hud.showResult("🔥 REMATCH STARTING!", 2000);
+      }
+
+      window.closeHubAndPlay();
+
+      if (window.PF_MULTIPLAYER && window.PF_MULTIPLAYER.state === 'OPEN') {
+        if (window.PF_MULTIPLAYER.isHost && window.PF_MULTIPLAYER_MATCH) {
+          window.PF_MULTIPLAYER_MATCH.startNextRoundAsHost(1, "player");
+        }
+      } else {
+        if (window.setArenaPlayers) {
+          window.setArenaPlayers(window.matchPlayerCount || 2, window.currentChosenPens);
+        }
+      }
+
+      window.updateLiveScoreboard();
+      window.PF_NET.updateTurnCue();
+    };
+
+    window.setArenaPlayers = function(numPlayers, customPens = null) {
+      numPlayers = Math.max(2, Math.min(8, parseInt(numPlayers) || 2));
+      if (!window.__pf) return;
+      const pf = window.__pf;
+
+      const S = 1.0 + (numPlayers - 2) * 0.125;
+      const baseW = 0.46;
+      const baseD = 0.70;
+      const W = baseW * S;
+      const D = baseD * S;
+
+      if (pf.deskRoot && pf.deskRoot.setTableScale) {
+        pf.deskRoot.setTableScale(S);
+      }
+
+      if (pf.tableCollider) {
+        pf.tableCollider.setHalfExtents({ x: W / 2, y: 0.03 / 2, z: D / 2 });
+      }
+
+      if (pf.camera && pf.baseCam) {
+        pf.baseCam.x = -0.65 * S;
+        pf.baseCam.y = 0.84 * S;
+        pf.baseCam.z = 0;
+        pf.camera.position.set(pf.baseCam.x, pf.baseCam.y, pf.baseCam.z);
+        pf.camera.lookAt(0, 0, 0);
+        const aspect = (window.innerWidth || 800) / (window.innerHeight || 600);
+        pf.camera.aspect = aspect;
+        pf.camera.fov = aspect < 1.05 ? Math.min(100, Math.max(52, 2 * Math.atan(0.5121 / aspect) * (180 / Math.PI))) : 52;
+        pf.camera.updateProjectionMatrix();
+        pf.camera.updateMatrixWorld(true);
+      }
+
+      const QA = pf.physWorld;
+      const aI = pf.scene;
+      const zA = pf.pens;
+      const wI = pf.visualPens;
+      const TI = pf.tags;
+
+      for (const id of Object.keys(zA)) {
+        try {
+          if (zA[id]?.body) QA.world.removeRigidBody(zA[id].body);
+          if (wI[id]?.dispose) wI[id].dispose();
+        } catch(e) {}
+        delete zA[id];
+        delete wI[id];
+      }
+      QA.tracked.length = 0;
+      TI.clear();
+      if (pf.tableCollider) TI.set(pf.tableCollider.handle, "desk");
+
+      const ROSTER = [
+        { id: "player", name: "You", pen: "gripper" },
+        { id: "rival",  name: "Bunty", pen: "pilotV5" },
+        { id: "bot3",   name: "Arjun", pen: "reynolds-trimax" },
+        { id: "bot4",   name: "Meera", pen: "reynolds045" },
+        { id: "bot5",   name: "Dev", pen: "megatop" },
+        { id: "bot6",   name: "Rohan", pen: "parker" },
+        { id: "bot7",   name: "Simran", pen: "addgel" },
+        { id: "bot8",   name: "Kabir", pen: "classmate-octane" }
+      ];
+
+      const selected = ROSTER.slice(0, numPlayers);
+
+      for (let k = 0; k < selected.length; k++) {
+        const p = selected[k];
+        const penId = (customPens && customPens[k]) ? customPens[k] : ((window.currentChosenPens && window.currentChosenPens[k]) ? window.currentChosenPens[k] : p.pen);
+        const spec = pf.penSpecs[penId] || pf.penSpecs["reynolds045"];
+        
+        const angle = (2 * Math.PI * k) / numPlayers - Math.PI / 2;
+        const spawnX = ((W / 2) - 0.08) * Math.cos(angle);
+        const spawnZ = ((D / 2) - 0.08) * Math.sin(angle);
+        const yaw = -angle - Math.PI / 2;
+
+        const penPhys = pf.penBuilder(QA, pf.tuning, p.id, { x: spawnX, y: spec.radius + 0.002, z: spawnZ }, yaw, spec);
+        zA[p.id] = penPhys;
+        QA.track(penPhys.body);
+        wI[p.id] = new pf.visualBuilder(aI, penPhys, spec.id);
+        for (const col of penPhys.colliders) {
+          TI.set(col.handle, "pen:" + p.id);
+        }
+      }
+
+      const ctrl = pf.controller;
+      if (ctrl) {
+        ctrl.pens = zA;
+        ctrl.outs = new Set();
+        ctrl.striker = "player";
+        if (window.PF_MULTIPLAYER && window.PF_MULTIPLAYER.state === 'OPEN') {
+          ctrl.paused = true;
+        } else {
+          ctrl.phase = "player_aim";
+          ctrl.phaseAt = performance.now();
+          ctrl.paused = false;
+        }
+        if (ctrl.hud) ctrl.hud.showCue("your turn");
+      }
+
+      console.log(`Arena resized for ${numPlayers} players (Scale: ${S}x, Width: ${W.toFixed(2)}m, Depth: ${D.toFixed(2)}m)`);
+      return { numPlayers, scale: S, width: W, depth: D };
+    };
+
+    function generateRoomCode() {
+      const prefixes = ["BENCH", "CLASS", "DESK", "FIGHT", "DUEL", "ROYALE"];
+      const p = prefixes[Math.floor(Math.random() * prefixes.length)];
+      const num = Math.floor(1000 + Math.random() * 9000);
+      return `${p}-${num}`;
+    }
+
+    function ensureChitCard() {
+      let wrap = document.querySelector(".chitwrap");
+      if (!wrap) {
+        wrap = document.createElement("div");
+        wrap.className = "chitwrap";
+        document.body.appendChild(wrap);
+      }
+      let card = wrap.querySelector(".chit");
+      if (!card) {
+        card = document.createElement("div");
+        card.className = "chit";
+        wrap.appendChild(card);
+      }
+      if (!card._hasStopProp) {
+        card._hasStopProp = true;
+        card.addEventListener("click", (e) => {
+          e.stopPropagation();
+        });
+      }
+      return { wrap, card };
+    }
+
+    window.updatePlayerName = function(val) {
+      const clean = (val || "").trim().toUpperCase().slice(0, 12);
+      if (clean.length > 0) {
+        localStorage.setItem("pf_name", clean);
+        try {
+          const col = JSON.parse(localStorage.getItem("pf_collection_v1") || "{}");
+          col.name = clean;
+          localStorage.setItem("pf_collection_v1", JSON.stringify(col));
+        } catch(e) {}
+        if (window.PF_MULTIPLAYER) {
+          window.PF_MULTIPLAYER.localName = clean;
+        }
+        window.updateLiveScoreboard && window.updateLiveScoreboard();
+      }
+    };
+
+    window.renderArcadeHub = function() {
+      window.hideMatchExitButton();
+      const { wrap, card } = ensureChitCard();
+      card.className = "chit arcade-hub-chit";
+      wrap.className = "chitwrap arcade-hub-wrap";
+      const equippedId = getEquippedPenId();
+      const penObj = ALL_12_PENS.find(p => p.id === equippedId) || ALL_12_PENS[0];
+      const playerName = (localStorage.getItem("pf_name") || "YOU").toUpperCase();
+
+      card.innerHTML = `
+        <div class="arcade-hub-playbook">
+          <!-- Left Column: Weapon & Fighter -->
+          <div class="hub-page-col hub-page-left">
+            <div class="hub-header-badge">PEN ARSENAL</div>
+            <h2 class="hub-title-sm">YOUR WEAPON</h2>
+            
+            <div class="hub-fighter-card">
+              <div class="fighter-tag" style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                <span>PLAYER:</span>
+                <input id="hub-player-name-input" type="text" maxlength="12" value="${playerName}" placeholder="NAME" 
+                  style="font-family:inherit; font-weight:800; font-size:12px; background:var(--pf-paper-light, #fff); border:1px solid var(--pf-ink, #1a1a1a); border-radius:4px; padding:2px 6px; width:96px; text-transform:uppercase; color:var(--pf-ink, #1a1a1a); box-shadow:1px 1px 0 var(--pf-ink);" 
+                  onchange="window.updatePlayerName(this.value)" oninput="window.updatePlayerName(this.value)" title="Click to edit your name" />
+              </div>
+              <span class="fighter-status"><span class="live-dot"></span> READY</span>
+            </div>
+
+            <div class="hub-weapon-box">
+              <span class="weapon-label">EQUIPPED PEN</span>
+              <div class="weapon-img-wrap">
+                <img src="${penObj.img}" alt="${penObj.name}" class="weapon-img" />
+              </div>
+              <h3 class="weapon-name">${penObj.name}</h3>
+              <span class="weapon-trait">${penObj.trait}</span>
+              <p class="weapon-desc">${penObj.quote || "Equipped for match"}</p>
+              <a href="/pens.html" class="hub-switch-pen-btn">CHANGE PEN ❯</a>
+            </div>
+
+            <div class="hub-footer-links">
+              <a href="/pens.html" class="hub-pill-link">🖊️ Arsenal</a>
+              <a href="/rules.html" class="hub-pill-link">📖 Rules</a>
+            </div>
+          </div>
+
+          <!-- Right Column: Game Modes -->
+          <div class="hub-page-col hub-page-right">
+            <div class="hub-right-header">
+              <div class="hub-header-badge">SELECT MODE</div>
+              <h2 class="hub-title-sm">BATTLE DESK</h2>
+            </div>
+
+            <div class="hub-modes-container">
+              <!-- Mode 1: Solo Campaign -->
+              <div class="hub-mode-panel solo-panel">
+                <div class="panel-head">
+                  <span class="panel-icon">🕹️</span>
+                  <div class="panel-meta">
+                    <span class="panel-badge">SOLO</span>
+                    <h4 class="panel-title">1P SOLO MODE</h4>
+                  </div>
+                </div>
+                <p class="panel-sub">Play vs AI bot</p>
+                <button type="button" class="hub-btn-play" onclick="window.closeHubAndPlay()">
+                  PLAY SOLO ❯
+                </button>
+              </div>
+
+              <!-- Mode 2: Multiplayer Room -->
+              <div class="hub-mode-panel multi-panel">
+                <div class="panel-head">
+                  <span class="panel-icon">👥</span>
+                  <div class="panel-meta">
+                    <span class="panel-badge">ONLINE</span>
+                    <h4 class="panel-title">MULTIPLAYER</h4>
+                  </div>
+                </div>
+                <p class="panel-sub">Play with friends</p>
+                <div class="hub-multi-actions">
+                  <button type="button" class="hub-btn-multi" onclick="window.showFriendSetup()">
+                    CREATE ROOM LINK ❯
+                  </button>
+                  <button type="button" class="hub-btn-join-code" onclick="window.showJoinRoomModal()">
+                    🔑 ENTER ROOM ID TO JOIN ❯
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      wrap.classList.add("show");
+      wrap.removeAttribute("inert");
+      wrap.removeAttribute("aria-hidden");
+    };
+
+    // Step 1: Choose Number of Players (1 to 8)
+    window.showFriendSetup = function() {
+      const { wrap, card } = ensureChitCard();
+      card.className = "chit arcade-hub-chit";
+      wrap.className = "chitwrap arcade-hub-wrap";
+      roomPlayerCount = 2;
+
+      const playerOptions = [
+        { count: 2, label: "2 PLAYERS", sub: "Classic 1v1 Duel" },
+        { count: 3, label: "3 PLAYERS", sub: "Triple Brawl" },
+        { count: 4, label: "4 PLAYERS", sub: "4-Way Squad" },
+        { count: 5, label: "5 PLAYERS", sub: "Pentagon Clash" },
+        { count: 6, label: "6 PLAYERS", sub: "Hexagon Bench" },
+        { count: 7, label: "7 PLAYERS", sub: "7-Pen Rumble" },
+        { count: 8, label: "8 PLAYERS", sub: "Battle Royale" }
+      ];
+
+      const gridHtml = playerOptions.map(opt => `
+        <button type="button" class="player-count-card ${opt.count === 2 ? 'active' : ''}" data-count="${opt.count}" onclick="window.selectFriendCount(${opt.count}, this)" style="background:${opt.count === 2 ? 'var(--pf-mustard-light)' : 'var(--pf-paper)'}; border:${opt.count === 2 ? '2px solid var(--pf-orange)' : 'var(--pf-border)'}; border-radius:var(--pf-radius-md); padding:10px 8px; cursor:pointer; text-align:center; box-shadow:2px 2px 0 var(--pf-ink); display:flex; flex-direction:column; align-items:center; gap:2px;">
+          <span class="p-num" style="font-family:var(--pf-font-display); font-size:22px; color:var(--pf-orange); line-height:1;">${opt.count}</span>
+          <span class="p-label" style="font-family:var(--pf-font-body); font-weight:800; font-size:12px; color:var(--pf-ink);">${opt.label}</span>
+          <span class="p-sub" style="font-size:9.5px; color:var(--pf-ink-muted);">${opt.sub}</span>
+        </button>
+      `).join("");
+
+      card.innerHTML = `
+        <div class="arcade-hub friend-setup-hub">
+          <div class="hub-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <button type="button" class="hub-back-btn" onclick="window.renderArcadeHub()" style="background:var(--pf-paper); border:var(--pf-border-thin); border-radius:var(--pf-radius-pill); font-family:var(--pf-font-body); font-weight:700; font-size:11px; padding:4px 10px; cursor:pointer;">← BACK</button>
+            <div class="hub-badge" style="font-family:var(--pf-font-display); font-size:14px; background:var(--pf-mustard); border:var(--pf-border-thin); border-radius:var(--pf-radius-pill); padding:3px 10px;">👥 PLAY WITH A FRIEND</div>
+          </div>
+
+          <div class="friend-setup-body" style="display:flex; flex-direction:column; gap:12px;">
+            <h3 class="setup-title" style="font-family:var(--pf-font-display); font-size:22px; margin:0; line-height:1.1;">SELECT NUMBER OF PLAYERS</h3>
+            <p class="setup-subtitle" style="font-size:12px; color:var(--pf-ink-soft); margin:0;">Pick player count to generate your room link:</p>
+
+            <div class="player-count-grid count-grid-8" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(110px, 1fr)); gap:8px;">
+              ${gridHtml}
+            </div>
+
+            <button type="button" class="hub-action-btn btn-create-room" onclick="window.generateAndShowRoomLobby()" style="background:var(--pf-orange); color:#fff; border:var(--pf-border); border-radius:var(--pf-radius-pill); font-family:var(--pf-font-body); font-size:13px; font-weight:800; padding:12px 18px; cursor:pointer; box-shadow:3px 3px 0 var(--pf-ink), 6px 6px 0 var(--pf-orange-dark); margin-top:6px;">
+              GENERATE ROOM & INVITE LINK ❯
+            </button>
+
+            <div style="text-align:center; font-size:11px; font-weight:700; color:var(--pf-ink-muted); margin:2px 0;">— OR —</div>
+
+            <button type="button" onclick="window.showJoinRoomModal()" style="width:100%; background:var(--pf-paper); color:var(--pf-ink); border:var(--pf-border-thin); border-radius:var(--pf-radius-pill); font-family:var(--pf-font-body); font-weight:700; font-size:11px; padding:9px; cursor:pointer; box-shadow:2px 2px 0 var(--pf-ink);">
+              🔑 HAVE A ROOM ID? JOIN HERE ❯
+            </button>
+          </div>
+        </div>
+      `;
+
+      wrap.classList.add("show");
+      wrap.removeAttribute("inert");
+      wrap.removeAttribute("aria-hidden");
+    };
+
+    window.selectFriendCount = function(count, btnEl) {
+      window.roomPlayerCount = roomPlayerCount = count;
+      document.querySelectorAll(".player-count-card").forEach(c => {
+        c.style.background = "var(--pf-paper)";
+        c.style.border = "var(--pf-border)";
+      });
+      if (btnEl) {
+        btnEl.style.background = "var(--pf-mustard-light)";
+        btnEl.style.border = "2px solid var(--pf-orange)";
+      }
+    };
+
+    // =========================================================================
+    // ENTER ROOM ID / JOIN ROOM MODAL
+    // =========================================================================
+    window.showJoinRoomModal = function() {
+      const { wrap, card } = ensureChitCard();
+      card.className = "chit arcade-hub-chit";
+      wrap.className = "chitwrap arcade-hub-wrap";
+      window.hideMatchExitButton();
+
+      card.innerHTML = `
+        <div class="arcade-hub join-room-hub">
+          <div class="hub-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <button type="button" class="hub-back-btn" onclick="window.renderArcadeHub()" style="background:var(--pf-paper); border:var(--pf-border-thin); border-radius:var(--pf-radius-pill); font-family:var(--pf-font-body); font-weight:700; font-size:11px; padding:4px 10px; cursor:pointer;">← BACK</button>
+            <div class="hub-badge" style="font-family:var(--pf-font-display); font-size:14px; background:var(--pf-teal); color:#fff; border:var(--pf-border-thin); border-radius:var(--pf-radius-pill); padding:3px 10px;">🔑 ENTER ROOM ID</div>
+          </div>
+
+          <div class="join-room-body" style="display:flex; flex-direction:column; gap:14px; text-align:center;">
+            <h3 style="font-family:var(--pf-font-display); font-size:24px; color:var(--pf-ink); margin:0; line-height:1.1;">JOIN FRIEND'S MATCH</h3>
+            <p style="font-size:12px; color:var(--pf-ink-soft); margin:0; line-height:1.4;">Enter the Room Code or paste the invite link shared by your friend:</p>
+
+            <div class="join-input-wrap" style="display:flex; flex-direction:column; gap:8px;">
+              <input type="text" id="pf-join-room-input" class="join-room-input" placeholder="e.g. BENCH-7492" maxlength="32" autofocus
+                oninput="this.value = this.value.toUpperCase()"
+                onkeydown="if(event.key==='Enter') window.submitJoinRoomCode();" />
+              
+              <div style="display:flex; gap:8px;">
+                <button type="button" onclick="window.pasteRoomCodeFromClipboard()" style="flex:1; background:var(--pf-paper); border:var(--pf-border-thin); border-radius:var(--pf-radius-pill); font-family:var(--pf-font-body); font-weight:700; font-size:11px; padding:7px 10px; cursor:pointer; box-shadow:1.5px 1.5px 0 var(--pf-ink);">
+                  📋 PASTE CODE / LINK
+                </button>
+              </div>
+            </div>
+
+            <div id="pf-join-error-msg" style="display:none; color:var(--pf-color-danger, #C13B2E); font-weight:800; font-size:11px; background:#FFE8DF; border:1.5px solid var(--pf-color-danger, #C13B2E); border-radius:var(--pf-radius-pill); padding:4px 10px;"></div>
+
+            <button type="button" class="hub-action-btn btn-submit-join" onclick="window.submitJoinRoomCode()" style="width:100%; background:var(--pf-teal); color:#fff; border:var(--pf-border); border-radius:var(--pf-radius-pill); font-family:var(--pf-font-body); font-size:14px; font-weight:800; padding:12px; cursor:pointer; box-shadow:3px 3px 0 var(--pf-ink), 6px 6px 0 var(--pf-ink); margin-top:4px;">
+              🚀 ENTER ROOM & BATTLE ❯
+            </button>
+          </div>
+        </div>
+      `;
+
+      wrap.classList.add("show");
+      wrap.removeAttribute("inert");
+      wrap.removeAttribute("aria-hidden");
+      setTimeout(() => {
+        const inp = document.getElementById("pf-join-room-input");
+        if (inp) inp.focus();
+      }, 100);
+    };
+
+    window.pasteRoomCodeFromClipboard = async function() {
+      try {
+        if (navigator.clipboard && navigator.clipboard.readText) {
+          const text = await navigator.clipboard.readText();
+          if (text) {
+            const inp = document.getElementById("pf-join-room-input");
+            if (inp) {
+              inp.value = text.trim().toUpperCase();
+            }
+          }
+        }
+      } catch(e) {
+        console.warn("Clipboard access unavailable", e);
+      }
+    };
+
+    window.submitJoinRoomCode = function() {
+      const inp = document.getElementById("pf-join-room-input");
+      const errEl = document.getElementById("pf-join-error-msg");
+      if (!inp) return;
+      let val = inp.value.trim();
+      
+      // Extract room code if full URL was pasted
+      if (val.includes("room=") || val.includes("duel=")) {
+        try {
+          const url = new URL(val.startsWith("http") ? val : "https://" + val);
+          val = url.searchParams.get("room") || url.searchParams.get("duel") || val;
+        } catch(e) {
+          const match = val.match(/(?:room|duel)=([A-Z0-9_-]+)/i);
+          if (match && match[1]) val = match[1];
+        }
+      }
+
+      val = val.replace(/[^A-Z0-9_-]/gi, '').toUpperCase();
+
+      if (!val || val.length < 3) {
+        if (errEl) {
+          errEl.style.display = "block";
+          errEl.textContent = "⚠️ Please enter a valid Room Code (e.g. BENCH-7492)";
+        }
+        return;
+      }
+
+      window.joinRoomWithCode(val);
+    };
+
+    window.joinRoomWithCode = function(roomCode) {
+      roomCode = roomCode.toUpperCase();
+      currentRoomCode = roomCode;
+      window.matchMode = "friend";
+
+      try {
+        window.history.pushState({}, '', '?room=' + encodeURIComponent(roomCode));
+      } catch(e) {}
+
+      window.PF_NET.joinRoom(roomCode);
+      window.showJoinedRoomLobby(roomCode);
+    };
+
+    window.showJoinedRoomLobby = function(roomCode) {
+      const { wrap, card } = ensureChitCard();
+      card.className = "chit arcade-hub-chit";
+      wrap.className = "chitwrap arcade-hub-wrap";
+      window.hideMatchExitButton();
+      const currentName = (localStorage.getItem("pf_name") || "YOU").toUpperCase();
+
+      card.innerHTML = `
+        <div class="arcade-hub room-lobby-hub">
+          <div class="hub-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <button type="button" class="hub-back-btn" onclick="location.href='/'" style="background:var(--pf-paper); border:var(--pf-border-thin); border-radius:var(--pf-radius-pill); font-family:var(--pf-font-body); font-weight:700; font-size:11px; padding:4px 10px; cursor:pointer;">← EXIT ROOM</button>
+            <div class="hub-badge" style="font-family:var(--pf-font-display); font-size:15px; background:var(--pf-mustard); border:var(--pf-border-thin); border-radius:var(--pf-radius-pill); padding:3px 10px;">JOINED ROOM: ${roomCode}</div>
+          </div>
+
+          <div class="room-lobby-body" style="display:flex; flex-direction:column; gap:12px;">
+            <div class="connected-section" style="background:var(--pf-paper); border:var(--pf-border); border-radius:var(--pf-radius-md); padding:16px; box-shadow:2px 2px 0 var(--pf-ink); text-align:center;">
+              <span class="connected-title" style="font-size:15px; font-weight:800;">CONNECTING TO DESK ARENA...</span>
+              <p class="connected-pill" id="lobby-connected-status" style="font-size:12px; font-weight:700; color:var(--pf-teal); margin-top:8px;">⏳ ESTABLISHING WEBRTC P2P CONNECTION...</p>
+              
+              <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-top:12px;">
+                <span style="font-size:12px; font-weight:800;">YOUR NAME:</span>
+                <input id="lobby-player-name-input" type="text" maxlength="12" value="${currentName}" placeholder="NAME" 
+                  style="font-family:inherit; font-weight:800; font-size:12px; background:var(--pf-paper-light, #fff); border:1px solid var(--pf-ink, #1a1a1a); border-radius:4px; padding:3px 8px; width:110px; text-transform:uppercase; color:var(--pf-ink, #1a1a1a); box-shadow:1px 1px 0 var(--pf-ink);" 
+                  onchange="window.updatePlayerName(this.value)" oninput="window.updatePlayerName(this.value)" title="Click to edit your name" />
+              </div>
+            </div>
+
+            <div class="room-footer">
+              <button type="button" class="hub-action-btn btn-start-host" onclick="window.startMatchWithTimer(false)" style="width:100%; background:var(--pf-orange); color:#fff; border:var(--pf-border); border-radius:var(--pf-radius-pill); font-family:var(--pf-font-body); font-size:13px; font-weight:800; padding:12px; cursor:pointer; box-shadow:3px 3px 0 var(--pf-ink), 6px 6px 0 var(--pf-orange-dark);">
+                ▶ I AM READY TO BATTLE!
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      wrap.classList.add("show");
+      wrap.removeAttribute("inert");
+      wrap.removeAttribute("aria-hidden");
+    };
+
+    // =========================================================================
+    // REAL-TIME WEBRTC P2P MULTIPLAYER SYNC ENGINE (Zero Latency P2P)
+    // =========================================================================
+    window.PF_NET = {
+      get connected() {
+        return window.PF_MULTIPLAYER && window.PF_MULTIPLAYER.state === 'OPEN';
+      },
+      get isHost() {
+        return window.PF_MULTIPLAYER ? window.PF_MULTIPLAYER.isHost : false;
+      },
+      get currentStriker() {
+        return window.PF_MULTIPLAYER ? window.PF_MULTIPLAYER.currentStriker : "player";
+      },
+      set currentStriker(val) {
+        if (window.PF_MULTIPLAYER) window.PF_MULTIPLAYER.currentStriker = val;
+      },
+      get peerName() {
+        return window.PF_MULTIPLAYER ? window.PF_MULTIPLAYER.remoteName : "Friend";
+      },
+      get peerPen() {
+        return window.PF_MULTIPLAYER ? window.PF_MULTIPLAYER.remotePen : "pilotV5";
+      },
+
+      createRoom: function(roomCode) {
+        const myName = (localStorage.getItem("pf_name") || "YOU").toUpperCase();
+        const myPen = getEquippedPenId();
+        if (!window.currentChosenPens || !Array.isArray(window.currentChosenPens)) {
+          window.currentChosenPens = [myPen, "pilotV5", "reynolds-trimax", "reynolds045", "parker", "megatop", "addgel", "classmate-octane"];
+        }
+        window.currentChosenPens[0] = myPen;
+        currentChosenPens = window.currentChosenPens;
+        if (window.PF_MULTIPLAYER) {
+          window.PF_MULTIPLAYER.createRoom(roomCode, myName, myPen);
+        }
+      },
+
+      joinRoom: function(roomCode) {
+        const myName = (localStorage.getItem("pf_name") || "YOU").toUpperCase();
+        const myPen = getEquippedPenId();
+        if (!window.currentChosenPens || !Array.isArray(window.currentChosenPens)) {
+          window.currentChosenPens = ["gripper", myPen, "reynolds-trimax", "reynolds045", "parker", "megatop", "addgel", "classmate-octane"];
+        }
+        window.currentChosenPens[1] = myPen;
+        currentChosenPens = window.currentChosenPens;
+        if (window.PF_MULTIPLAYER) {
+          window.PF_MULTIPLAYER.joinRoom(roomCode, myName, myPen);
+        }
+      },
+
+      send: function(msg) {
+        if (window.PF_MULTIPLAYER) {
+          window.PF_MULTIPLAYER.sendReliable(msg);
+        }
+      },
+
+      onShotTaken: function(striker) {
+        this.updateTurnCue();
+      },
+
+      updateTurnCue: function() {
+        const mp = window.PF_MULTIPLAYER;
+        if (!mp || mp.state !== 'OPEN') return;
+        const isMyTurn = mp.isMyTurn();
+        const opponentName = mp.remoteName || "FRIEND";
+        const cueText = isMyTurn ? "👉 YOUR TURN TO FLICK!" : `⏳ ${opponentName.toUpperCase()}'S TURN...`;
+        const cueIcon = isMyTurn ? "👉" : "⏳";
+        console.log(`[PF_NET] Turn: ${mp.currentStriker}, isMyTurn=${isMyTurn}`);
+        if (window.__pf && window.__pf.controller && window.__pf.controller.hud) {
+          window.__pf.controller.hud.showCue(cueText, cueIcon);
+        }
+      },
+
+      updateLobbyUI: function(statusText) {
+        const pill = document.querySelector(".connected-pill");
+        if (pill) pill.textContent = statusText;
+
+        const slot2Name = document.getElementById("slot-player-2-name");
+        if (slot2Name && this.peerName) {
+          slot2Name.textContent = this.peerName;
+        }
+      }
+    };
+
+    // =========================================================================
+    // MULTIPLAYER MATCH REFEREE & ROUND SYNCHRONIZATION
+    // =========================================================================
+    window.PF_MULTIPLAYER_MATCH = {
+      scores: { player: 0, rival: 0 },
+      round: 1,
+      targetWins: 2, // Best of 3: first to 2 wins wins the match
+      isRoundEnding: false,
+      settleCooldownUntil: 0,
+
+      reset: function() {
+        this.scores = { player: 0, rival: 0 };
+        this.round = 1;
+        this.isRoundEnding = false;
+        this.settleCooldownUntil = 0;
+        window.updateLiveScoreboard();
+      },
+
+      checkOuts: function() {
+        if (!window.PF_MULTIPLAYER || window.PF_MULTIPLAYER.state !== 'OPEN') return;
+        if (!window.PF_MULTIPLAYER.isHost) return; // Host is the authoritative referee
+        if (this.isRoundEnding) return;
+        if (Date.now() < this.settleCooldownUntil) return;
+        if (!window.__pf || !window.__pf.pens) return;
+
+        const pPen = window.__pf.pens["player"];
+        const rPen = window.__pf.pens["rival"];
+        if (!pPen || !rPen || !pPen.body || !rPen.body) return;
+
+        const pPos = pPen.body.translation();
+        const rPos = rPen.body.translation();
+
+        // Table threshold: Desk surface is y=0. If y drops below -0.035 or flies off desk edges, pen is OUT!
+        const S = window.roomPlayerCount ? (1.0 + (window.roomPlayerCount - 2) * 0.125) : 1.0;
+        const maxW = (0.46 * S) / 2 + 0.08;
+        const maxD = (0.70 * S) / 2 + 0.08;
+
+        const pOut = pPos.y < -0.035 || Math.abs(pPos.x) > maxW || Math.abs(pPos.z) > maxD;
+        const rOut = rPos.y < -0.035 || Math.abs(rPos.x) > maxW || Math.abs(rPos.z) > maxD;
+
+        if (pOut || rOut) {
+          this.isRoundEnding = true;
+          let winner = null;
+          if (pOut && !rOut) {
+            winner = "rival"; // Guest scored
+            this.scores.rival++;
+          } else if (rOut && !pOut) {
+            winner = "player"; // Host scored
+            this.scores.player++;
+          }
+
+          const currentFinishedRound = this.round;
+          const hostName = (localStorage.getItem("pf_name") || "YOU").toUpperCase();
+          const guestName = (window.PF_MULTIPLAYER.remoteName || "FRIEND").toUpperCase();
+          
+          let resultText = "⚖️ DRAW! BOTH PENS FELL OFF!";
+          if (winner === "player") resultText = `👑 ${hostName} WON ROUND ${currentFinishedRound}!`;
+          if (winner === "rival") resultText = `💥 ${guestName} WON ROUND ${currentFinishedRound}!`;
+
+          if (window.__pf.controller && window.__pf.controller.hud) {
+            window.__pf.controller.hud.showResult(resultText, 2500);
+          }
+
+          const matchWinner = this.scores.player >= this.targetWins ? "player" : (this.scores.rival >= this.targetWins ? "rival" : null);
+          const nextRound = matchWinner ? currentFinishedRound : (currentFinishedRound + 1);
+          // Alternating turns for rounds: Round 1 = player, Round 2 = rival, Round 3 = player
+          const nextStriker = (nextRound % 2 === 1) ? "player" : "rival";
+
+          window.PF_MULTIPLAYER.sendReliable({
+            type: 'ROUND_RESULT',
+            scores: this.scores,
+            finishedRound: currentFinishedRound,
+            nextRound: nextRound,
+            winner: winner,
+            matchWinner: matchWinner,
+            striker: nextStriker
+          });
+
+          this.round = nextRound;
+          window.updateLiveScoreboard();
+
+          if (matchWinner) {
+            setTimeout(() => {
+              const championName = matchWinner === "player" ? hostName : guestName;
+              if (window.__pf.controller && window.__pf.controller.hud) {
+                window.__pf.controller.hud.showResult(`🏆 ${championName} WON THE MATCH (${this.scores.player} - ${this.scores.rival})!`, 3500);
+              }
+              setTimeout(() => {
+                window.showGameOverModal(matchWinner, this.scores);
+              }, 2200);
+            }, 2000);
+          } else {
+            setTimeout(() => {
+              this.startNextRoundAsHost(nextRound, nextStriker);
+            }, 2200);
+          }
+        }
+      },
+
+      startNextRoundAsHost: function(nextRound, nextStriker) {
+        if (!window.__pf) return;
+        const pf = window.__pf;
+
+        const S = window.roomPlayerCount ? (1.0 + (window.roomPlayerCount - 2) * 0.125) : 1.0;
+        const spawnZ = ((0.70 * S) / 2) - 0.08;
+
+        const pPen = pf.pens ? pf.pens["player"] : null;
+        const rPen = pf.pens ? pf.pens["rival"] : null;
+        if (!pPen || !rPen || !pPen.body || !rPen.body) return;
+
+        const pRad = (pPen.spec && pPen.spec.radius) || 0.008;
+        const rRad = (rPen.spec && rPen.spec.radius) || 0.008;
+
+        // Player (Host) spawns at -spawnZ facing +Z (center)
+        pPen.body.setTranslation({ x: 0, y: pRad + 0.002, z: -spawnZ }, true);
+        pPen.body.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true);
+        pPen.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+        pPen.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+
+        // Rival (Guest) spawns at +spawnZ facing -Z (center)
+        rPen.body.setTranslation({ x: 0, y: rRad + 0.002, z: spawnZ }, true);
+        rPen.body.setRotation({ x: 0, y: 1, z: 0, w: 0 }, true);
+        rPen.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+        rPen.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+
+        if (pf.visualPens) {
+          if (pf.visualPens["player"] && pf.visualPens["player"].root) {
+            pf.visualPens["player"].root.position.set(0, pRad + 0.002, -spawnZ);
+            pf.visualPens["player"].root.quaternion.set(0, 0, 0, 1);
+          }
+          if (pf.visualPens["rival"] && pf.visualPens["rival"].root) {
+            pf.visualPens["rival"].root.position.set(0, rRad + 0.002, spawnZ);
+            pf.visualPens["rival"].root.quaternion.set(0, 1, 0, 0);
+          }
+        }
+
+        if (pf.physWorld && pf.physWorld.snapTransforms) {
+          pf.physWorld.snapTransforms();
+        }
+
+        const pensPayload = {
+          player: { p: [0, pRad + 0.002, -spawnZ], q: [0, 0, 0, 1] },
+          rival: { p: [0, rRad + 0.002, spawnZ], q: [0, 1, 0, 0] }
+        };
+
+        if (window.PF_MULTIPLAYER) {
+          window.PF_MULTIPLAYER.currentStriker = nextStriker;
+          window.PF_MULTIPLAYER.sendNewRound(nextRound, this.scores, nextStriker, pensPayload);
+        }
+
+        this.settleCooldownUntil = Date.now() + 1000;
+        this.isRoundEnding = false;
+
+        window.updateLiveScoreboard();
+        window.PF_NET.updateTurnCue();
+
+        if (window.__pf.controller && window.__pf.controller.hud) {
+          const isMyTurn = (nextStriker === "player");
+          const starterLabel = isMyTurn ? "YOUR TURN" : `${(window.PF_MULTIPLAYER?.remoteName || "OPPONENT").toUpperCase()}'S TURN`;
+          window.__pf.controller.hud.showCue(`ROUND ${nextRound} • ${starterLabel}`);
+        }
+      }
+    };
+
+    // Continuous Real-Time Referee Loop (25 FPS) for instant out-of-bounds detection
+    setInterval(() => {
+      if (window.PF_MULTIPLAYER_MATCH && window.PF_MULTIPLAYER && window.PF_MULTIPLAYER.state === 'OPEN') {
+        window.PF_MULTIPLAYER_MATCH.checkOuts();
+      }
+    }, 40);
+
+    // Retry connection handler — called from the ERROR state retry button
+    window.retryRoomConnection = function() {
+      if (!window.PF_MULTIPLAYER || !currentRoomCode) return;
+      window.PF_MULTIPLAYER.disconnect();
+      const params = new URLSearchParams(window.location.search);
+      const isJoining = params.has("room") || params.has("duel");
+      if (isJoining) {
+        window.PF_NET.joinRoom(currentRoomCode);
+      } else {
+        window.PF_NET.createRoom(currentRoomCode);
+      }
+    };
+
+    // Attach Multiplayer Event Handlers
+    if (window.PF_MULTIPLAYER) {
+      window.PF_MULTIPLAYER.on('playerJoined', (data) => {
+        if (data.isHost) {
+          window.currentChosenPens[1] = data.remotePen || "pilotV5";
+        } else {
+          window.currentChosenPens[0] = data.remotePen || "gripper";
+        }
+        window.PF_NET.updateLobbyUI(`🟢 ${data.remoteName} CONNECTED!`);
+        window.updateLiveScoreboard();
+      });
+
+      window.PF_MULTIPLAYER.on('penUpdated', (data) => {
+        if (typeof data.slot === 'number' && data.penId) {
+          window.currentChosenPens[data.slot] = data.penId;
+          const picker = document.querySelector(".pen-selection-hub");
+          if (picker) {
+            window.showPreMatchPenSelection(window.matchPlayerCount || 2, window.matchMode || "friend");
+          }
+        }
+      });
+
+      window.PF_MULTIPLAYER.on('matchStarted', (data) => {
+        if (data.pens && Array.isArray(data.pens)) {
+          window.currentChosenPens = data.pens;
+        }
+        window.confirmAndLaunchMatch(true);
+      });
+
+      window.PF_MULTIPLAYER.on('matchTimerStarted', (data) => {
+        if (data.pens && Array.isArray(data.pens)) {
+          window.currentChosenPens = data.pens;
+        }
+        window.startMatchWithTimer(true);
+      });
+
+      window.PF_MULTIPLAYER.on('opponentShot', (data) => {
+        window.isHandlingRemoteShot = true;
+        if (window.__pf && window.__pf.pens) {
+          if (data.transform) {
+            if (data.transform.p && data.transform.q && window.__pf.pens[data.striker]) {
+              const pen = window.__pf.pens[data.striker];
+              try {
+                pen.body.setTranslation({ x: data.transform.p[0], y: data.transform.p[1], z: data.transform.p[2] }, true);
+                pen.body.setRotation({ x: data.transform.q[0], y: data.transform.q[1], z: data.transform.q[2], w: data.transform.q[3] }, true);
+                pen.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+                pen.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+              } catch(e) {}
+            } else {
+              for (const [id, tf] of Object.entries(data.transform)) {
+                const pen = window.__pf.pens[id];
+                if (pen && tf && tf.p && tf.q) {
+                  try {
+                    pen.body.setTranslation({ x: tf.p[0], y: tf.p[1], z: tf.p[2] }, true);
+                    pen.body.setRotation({ x: tf.q[0], y: tf.q[1], z: tf.q[2], w: tf.q[3] }, true);
+                    pen.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+                    pen.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+                  } catch(e) {}
+                }
+              }
+            }
+          }
+          if (window.__pf.flick) {
+            console.log("[PF_MULTIPLAYER] Deterministic remote flick executed:", data);
+            window.__pf.flick(data.striker || "rival", data.shot || data.impulse);
+          } else if (window.__pf.impulse) {
+            window.__pf.impulse(data.striker || "rival", data.shot || data.impulse);
+          }
+          try { if (window.triggerImpactPulse) window.triggerImpactPulse(1.0); } catch(e) {}
+        }
+        window.PF_NET.updateTurnCue();
+        setTimeout(() => { window.isHandlingRemoteShot = false; }, 250);
+      });
+
+      window.PF_MULTIPLAYER.on('settleSync', (data) => {
+        if (window.__pf && window.__pf.pens && data.pens) {
+          for (const [id, tf] of Object.entries(data.pens)) {
+            const pen = window.__pf.pens[id];
+            if (pen && tf.p && tf.q) {
+              try {
+                pen.body.setTranslation({ x: tf.p[0], y: tf.p[1], z: tf.p[2] }, true);
+                pen.body.setRotation({ x: tf.q[0], y: tf.q[1], z: tf.q[2], w: tf.q[3] }, true);
+                pen.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+                pen.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+                if (window.__pf.visualPens && window.__pf.visualPens[id] && window.__pf.visualPens[id].root) {
+                  window.__pf.visualPens[id].root.position.set(tf.p[0], tf.p[1], tf.p[2]);
+                  window.__pf.visualPens[id].root.quaternion.set(tf.q[0], tf.q[1], tf.q[2], tf.q[3]);
+                }
+              } catch(e) {}
+            }
+          }
+        }
+        if (data.striker && window.PF_MULTIPLAYER) {
+          window.PF_MULTIPLAYER.currentStriker = data.striker;
+        }
+        window.PF_NET.updateTurnCue();
+        if (window.PF_MULTIPLAYER_MATCH && !window.PF_MULTIPLAYER_MATCH.isRoundEnding) {
+          window.PF_MULTIPLAYER_MATCH.checkOuts();
+        }
+      });
+
+      window.PF_MULTIPLAYER.on('roundResult', (data) => {
+        try { if (window.triggerImpactPulse) window.triggerImpactPulse(1.4); } catch(e) {}
+        if (data.scores) window.PF_MULTIPLAYER_MATCH.scores = data.scores;
+        if (data.nextRound) window.PF_MULTIPLAYER_MATCH.round = data.nextRound;
+
+        window.PF_MULTIPLAYER_MATCH.isRoundEnding = true;
+
+        const isHost = window.PF_MULTIPLAYER ? window.PF_MULTIPLAYER.isHost : false;
+        const myRole = isHost ? "player" : "rival";
+        const localName = (localStorage.getItem("pf_name") || (isHost ? "Host" : "Friend")).toUpperCase();
+        const remoteName = (window.PF_MULTIPLAYER?.remoteName || (isHost ? "Friend" : "Host")).toUpperCase();
+        const finishedRound = data.finishedRound || (data.round ? data.round : 1);
+
+        let resultText = "⚖️ DRAW! BOTH PENS OUT!";
+        if (data.winner === myRole) {
+          resultText = `👑 YOU WON ROUND ${finishedRound}!`;
+        } else if (data.winner) {
+          resultText = `💥 ${remoteName} WON ROUND ${finishedRound}!`;
+        }
+
+        if (window.__pf && window.__pf.controller && window.__pf.controller.hud) {
+          window.__pf.controller.hud.showResult(resultText, 2500);
+        }
+
+        if (data.matchWinner) {
+          setTimeout(() => {
+            const isWinner = data.matchWinner === myRole;
+            if (window.__pf && window.__pf.controller && window.__pf.controller.hud) {
+              window.__pf.controller.hud.showResult(isWinner ? "🏆 YOU WON THE MATCH!" : "💔 MATCH OVER", 3500);
+            }
+            setTimeout(() => {
+              window.showGameOverModal(data.matchWinner, data.scores || window.PF_MULTIPLAYER_MATCH.scores);
+            }, 2200);
+          }, 2000);
+        }
+
+        window.updateLiveScoreboard();
+      });
+
+      window.PF_MULTIPLAYER.on('newRound', (data) => {
+        if (data.scores) window.PF_MULTIPLAYER_MATCH.scores = data.scores;
+        if (data.round) window.PF_MULTIPLAYER_MATCH.round = data.round;
+        if (data.striker && window.PF_MULTIPLAYER) {
+          window.PF_MULTIPLAYER.currentStriker = data.striker;
+        }
+
+        const pf = window.__pf;
+        if (pf && data.pens) {
+          for (const [id, tf] of Object.entries(data.pens)) {
+            if (pf.pens && pf.pens[id] && pf.pens[id].body && tf.p && tf.q) {
+              try {
+                pf.pens[id].body.setTranslation({ x: tf.p[0], y: tf.p[1], z: tf.p[2] }, true);
+                pf.pens[id].body.setRotation({ x: tf.q[0], y: tf.q[1], z: tf.q[2], w: tf.q[3] }, true);
+                pf.pens[id].body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+                pf.pens[id].body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+              } catch(e) {}
+            }
+            if (pf.visualPens && pf.visualPens[id] && pf.visualPens[id].root && tf.p && tf.q) {
+              try {
+                pf.visualPens[id].root.position.set(tf.p[0], tf.p[1], tf.p[2]);
+                pf.visualPens[id].root.quaternion.set(tf.q[0], tf.q[1], tf.q[2], tf.q[3]);
+              } catch(e) {}
+            }
+          }
+          if (pf.physWorld && pf.physWorld.snapTransforms) {
+            pf.physWorld.snapTransforms();
+          }
+        }
+
+        window.PF_MULTIPLAYER_MATCH.settleCooldownUntil = Date.now() + 1000;
+        window.PF_MULTIPLAYER_MATCH.isRoundEnding = false;
+        window.updateLiveScoreboard();
+        window.PF_NET.updateTurnCue();
+
+        if (window.__pf && window.__pf.controller && window.__pf.controller.hud) {
+          const isMyTurn = window.PF_MULTIPLAYER ? window.PF_MULTIPLAYER.isMyTurn() : false;
+          window.__pf.controller.hud.showCue(`ROUND ${data.round} • ${isMyTurn ? "YOUR TURN" : "OPPONENT'S TURN"}`);
+        }
+      });
+
+      window.PF_MULTIPLAYER.on('rematchVote', (data) => {
+        window.peerRematchVote = data.vote;
+        if (data.vote === 'leave') {
+          if (window.__pf && window.__pf.controller && window.__pf.controller.hud) {
+            window.__pf.controller.hud.showResult("👋 Opponent left the match.", 3000);
+          }
+          const pill = document.getElementById("rematch-status-pill");
+          if (pill) {
+            pill.style.display = "block";
+            pill.textContent = "🚪 Opponent left the match. Returning to lobby...";
+          }
+          setTimeout(() => {
+            window.confirmExitAndLeaveMatch();
+          }, 1200);
+        } else if (data.vote === 'yes') {
+          const pill = document.getElementById("rematch-status-pill");
+          if (pill) {
+            pill.style.display = "block";
+            pill.textContent = "🟢 Opponent voted for Rematch! (1/2 Ready)";
+          }
+          if (window.myRematchVote === 'yes') {
+            window.startRematchGame();
+          }
+        }
+      });
+
+      window.PF_MULTIPLAYER.on('stateChange', (data) => {
+        if (data.state === 'CONNECTING') {
+          window.PF_NET.updateLobbyUI("⏳ CONNECTING PEERS...");
+        } else if (data.state === 'OPEN') {
+          window.PF_NET.updateLobbyUI("🟢 2/2 PLAYERS CONNECTED! READY TO DUEL!");
+        } else if (data.state === 'RECONNECTING') {
+          window.PF_NET.updateLobbyUI("🔄 RECONNECTING...");
+        } else if (data.state === 'DISCONNECTED') {
+          window.PF_NET.updateLobbyUI("⚠️ OPPONENT DISCONNECTED");
+        } else if (data.state === 'ERROR') {
+          window.PF_NET.updateLobbyUI("❌ CONNECTION FAILED");
+          // Show retry button in the lobby
+          const pill = document.querySelector(".connected-pill");
+          if (pill) {
+            pill.innerHTML = `❌ CONNECTION FAILED <br><button type="button" onclick="window.retryRoomConnection()" style="margin-top:8px; background:var(--pf-orange); color:#fff; border:var(--pf-border); border-radius:var(--pf-radius-pill); font-family:var(--pf-font-body); font-size:11px; font-weight:800; padding:8px 16px; cursor:pointer; box-shadow:2px 2px 0 var(--pf-ink);">🔄 RETRY CONNECTION</button>`;
+          }
+        }
+      });
+    }
+
+    // Step 2: Room Lobby with Generated Code, Link & Connected Players
+    window.generateAndShowRoomLobby = function() {
+      window.currentRoomCode = currentRoomCode = generateRoomCode();
+      const { wrap, card } = ensureChitCard();
+      card.className = "chit arcade-hub-chit";
+      wrap.className = "chitwrap arcade-hub-wrap";
+
+      // Start P2P WebRTC Host Room
+      window.PF_NET.createRoom(currentRoomCode);
+
+      const roomUrl = `${window.location.origin}/?room=${currentRoomCode}`;
+
+      let connectedPlayersHtml = "";
+      const hostName = (localStorage.getItem("pf_name") || "YOU").toUpperCase();
+      const names = [hostName, "Opponent (Waiting to join...)"];
+
+      for (let i = 0; i < roomPlayerCount; i++) {
+        const isHost = i === 0;
+        connectedPlayersHtml += `
+          <div class="connected-player-row ${isHost ? 'is-host' : ''}" style="display:flex; justify-content:space-between; align-items:center; background:var(--pf-paper-light); border:var(--pf-border-thin); border-radius:var(--pf-radius-sm); padding:6px 10px; margin-bottom:6px; box-shadow:1px 1px 0 var(--pf-ink);">
+            <div class="c-player-left" style="display:flex; align-items:center; gap:8px;">
+              <span class="c-avatar">${isHost ? "👑" : "🖊️"}</span>
+              <div class="c-details" style="display:flex; flex-direction:column; line-height:1.2;">
+                <span class="c-name" id="${isHost ? 'slot-player-1-name' : 'slot-player-2-name'}" style="font-weight:700; font-size:12px;">${names[i] || `Player ${i + 1}`}</span>
+                <span class="c-role" style="font-size:9.5px; color:var(--pf-ink-muted);">${isHost ? "Room Leader (Host)" : "Player Slot"}</span>
+              </div>
+            </div>
+            <span class="c-status-badge" style="font-size:10px; font-weight:700; color:var(--pf-teal); background:var(--pf-paper); border:1px solid var(--pf-ink); padding:2px 6px; border-radius:var(--pf-radius-pill);">🟢 READY</span>
+          </div>
+        `;
+      }
+
+      card.innerHTML = `
+        <div class="arcade-hub room-lobby-hub">
+          <div class="hub-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <button type="button" class="hub-back-btn" onclick="window.showFriendSetup()" style="background:var(--pf-paper); border:var(--pf-border-thin); border-radius:var(--pf-radius-pill); font-family:var(--pf-font-body); font-weight:700; font-size:11px; padding:4px 10px; cursor:pointer;">← CHANGE PLAYERS</button>
+            <div class="hub-badge" style="font-family:var(--pf-font-display); font-size:15px; background:var(--pf-mustard); border:var(--pf-border-thin); border-radius:var(--pf-radius-pill); padding:3px 10px;">ROOM: ${currentRoomCode}</div>
+          </div>
+
+          <div class="room-lobby-body" style="display:flex; flex-direction:column; gap:12px;">
+            <div class="room-share-card" style="background:var(--pf-paper); border:var(--pf-border); border-radius:var(--pf-radius-md); padding:12px; box-shadow:2px 2px 0 var(--pf-ink);">
+              <div class="share-info" style="display:flex; flex-direction:column; gap:4px;">
+                <span class="share-label" style="font-size:10px; font-weight:800; color:var(--pf-orange-dark); letter-spacing:0.06em; text-transform:uppercase;">SHARE ROOM LINK</span>
+                <span class="share-url" id="display-room-url" style="font-family:monospace; font-size:11px; background:var(--pf-paper-light); border:1px dashed var(--pf-ink); padding:6px 8px; border-radius:var(--pf-radius-sm); word-break:break-all;">${roomUrl}</span>
+              </div>
+              <div class="share-btn-group" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+                <button type="button" class="btn-copy-link" id="btn-copy-room" onclick="window.copyRoomLink('${roomUrl}')" style="flex:1; background:var(--pf-mustard); color:var(--pf-ink); border:var(--pf-border); border-radius:var(--pf-radius-pill); font-family:var(--pf-font-body); font-size:11px; font-weight:800; padding:9px 12px; cursor:pointer; box-shadow:2px 2px 0 var(--pf-ink);">
+                  📋 COPY LINK
+                </button>
+                <button type="button" class="btn-whatsapp-share" onclick="window.shareToWhatsApp('${roomUrl}', '${currentRoomCode}')" style="flex:1; background:#25D366; color:#fff; border:var(--pf-border); border-radius:var(--pf-radius-pill); font-family:var(--pf-font-body); font-size:11px; font-weight:800; padding:9px 12px; cursor:pointer; box-shadow:2px 2px 0 var(--pf-ink);">
+                  💬 WHATSAPP
+                </button>
+              </div>
+            </div>
+
+            <div class="connected-section" style="background:var(--pf-paper); border:var(--pf-border); border-radius:var(--pf-radius-md); padding:10px; box-shadow:2px 2px 0 var(--pf-ink);">
+              <div class="connected-head" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <span class="connected-title" style="font-size:11px; font-weight:800;">LOBBY SLOTS (${roomPlayerCount} PLAYERS)</span>
+                <span class="connected-pill" style="font-size:9.5px; font-weight:700; color:var(--pf-teal);">⏳ WAITING FOR FRIEND...</span>
+              </div>
+              <div class="connected-list">
+                ${connectedPlayersHtml}
+              </div>
+            </div>
+
+            <div class="room-footer">
+              <button type="button" class="hub-action-btn btn-start-host" onclick="window.startMatchWithTimer()" style="width:100%; background:var(--pf-orange); color:#fff; border:var(--pf-border); border-radius:var(--pf-radius-pill); font-family:var(--pf-font-body); font-size:13px; font-weight:800; padding:12px; cursor:pointer; box-shadow:3px 3px 0 var(--pf-ink), 6px 6px 0 var(--pf-orange-dark);">
+                🚀 ENTER ARENA (8s PEN TIMER)
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      wrap.classList.add("show");
+      wrap.removeAttribute("inert");
+      wrap.removeAttribute("aria-hidden");
+    };
+
+    window.copyRoomLink = function(url) {
+      navigator.clipboard.writeText(url).then(() => {
+        const btn = document.getElementById("btn-copy-room");
+        if (btn) {
+          btn.textContent = "✅ COPIED!";
+          setTimeout(() => {
+            btn.textContent = "📋 COPY LINK";
+          }, 2000);
+        }
+      }).catch(() => {
+        prompt("Copy this match link:", url);
+      });
+    };
+
+    window.shareToWhatsApp = function(url, code) {
+      const text = encodeURIComponent(`⚡ Join my Pen Fight match on the desk! Click here to play (Code: ${code}):\n${url}`);
+      window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+    };
+
+    window.startMatchWithTimer = function(fromRemote = false) {
+      window._matchLaunched = false;
+      matchPlayerCount = roomPlayerCount;
+      matchMode = "friend";
+      penSelectionSecondsRemaining = 8;
+
+      if (!fromRemote && window.PF_NET && window.PF_NET.connected) {
+        window.PF_NET.send({
+          type: 'START_MATCH',
+          pens: window.currentChosenPens
+        });
+      }
+
+      if (penSelectionTimerInterval) {
+        clearInterval(penSelectionTimerInterval);
+      }
+
+      window.showPreMatchPenSelection(roomPlayerCount, "friend");
+
+      penSelectionTimerInterval = setInterval(() => {
+        penSelectionSecondsRemaining--;
+        const timerEl = document.getElementById("pen-timer-val");
+        const timerBar = document.getElementById("pen-timer-bar-fill");
+        
+        if (timerEl) {
+          timerEl.textContent = `${penSelectionSecondsRemaining}s`;
+          if (penSelectionSecondsRemaining <= 3) {
+            timerEl.style.color = "var(--pf-orange)";
+          }
+        }
+
+        if (timerBar) {
+          timerBar.style.width = `${(penSelectionSecondsRemaining / 8) * 100}%`;
+        }
+
+        if (penSelectionSecondsRemaining <= 0) {
+          clearInterval(penSelectionTimerInterval);
+          penSelectionTimerInterval = null;
+          window.confirmAndLaunchMatch();
+        }
+      }, 1000);
+    };
+
+    window.confirmAndLaunchMatch = function(fromRemote = false) {
+      if (window._matchLaunched) return;
+      window._matchLaunched = true;
+      if (penSelectionTimerInterval) {
+        clearInterval(penSelectionTimerInterval);
+        penSelectionTimerInterval = null;
+      }
+      if (!fromRemote && window.PF_NET && window.PF_NET.connected) {
+        window.PF_NET.send({
+          type: 'LAUNCH_MATCH',
+          pens: window.currentChosenPens
+        });
+      }
+      const chosenList = (window.currentChosenPens || []).slice(0, matchPlayerCount);
+      
+      if (window.setArenaPlayers) {
+        window.setArenaPlayers(matchPlayerCount, chosenList);
+      }
+
+      if (window.PF_MULTIPLAYER && window.PF_MULTIPLAYER.state === 'OPEN') {
+        window.PF_MULTIPLAYER.currentStriker = "player";
+        if (window.PF_MULTIPLAYER_MATCH) window.PF_MULTIPLAYER_MATCH.reset();
+        if (window.__pf && window.__pf.controller) {
+          window.__pf.controller.paused = true;
+        }
+        window.PF_NET.updateTurnCue();
+      } else if (window.PF_NET && window.PF_NET.connected) {
+        window.PF_NET.currentStriker = "player";
+        window.PF_NET.updateTurnCue();
+      }
+
+      window.showMatchExitButton();
+      window.closeHubAndPlay();
+      window.updateLiveScoreboard();
+    };
+
+    window.showPreMatchPenSelection = function(playerCount, mode = "solo") {
+      matchPlayerCount = playerCount || 2;
+      matchMode = mode;
+
+      const card = document.querySelector(".chit");
+      if (!card) return;
+
+      const isMulti = window.PF_MULTIPLAYER && window.PF_MULTIPLAYER.state === 'OPEN';
+      const isHost = window.PF_MULTIPLAYER ? window.PF_MULTIPLAYER.isHost : true;
+      const localName = (localStorage.getItem("pf_name") || (isHost ? "Host" : "Friend")).toUpperCase();
+      const remoteName = (window.PF_MULTIPLAYER?.remoteName || (isHost ? "Friend" : "Host")).toUpperCase();
+
+      let slotsHtml = "";
+      for (let i = 0; i < matchPlayerCount; i++) {
+        const penId = (window.currentChosenPens && window.currentChosenPens[i]) || ALL_12_PENS[i % ALL_12_PENS.length].id;
+        const penObj = ALL_12_PENS.find(p => p.id === penId) || ALL_12_PENS[0];
+        
+        // In multiplayer:
+        // Host controls slot 0, Guest controls slot 1
+        const isMySlot = !isMulti || (isHost ? i === 0 : i === 1);
+        const slotBadge = isMulti
+          ? (i === 0 ? (isHost ? `${localName} (YOU)` : `${remoteName}`)
+                     : (isHost ? `${remoteName}` : `${localName} (YOU)`))
+          : (i === 0 ? `${localName} (YOU)` : `BOT ${i} (AI)`);
+
+        const clickAttr = isMySlot ? `onclick="window.openPenPickerModal(${i})"` : `style="opacity:0.85; cursor:not-allowed;" title="Opponent selects their own pen"`;
+        const actionText = isMySlot ? "Click to change ❯" : "🔒 Chosen by Opponent";
+
+        slotsHtml += `
+          <div class="player-pen-slot ${isMySlot ? 'my-pen-slot' : 'opponent-pen-slot'}">
+            <div class="slot-header">
+              <span class="slot-badge">${slotBadge}</span>
+              <span class="slot-sub">${penObj.trait}</span>
+            </div>
+            <div class="slot-content" ${clickAttr}>
+              <img class="slot-pen-img" src="${penObj.img}" alt="${penObj.name}" draggable="false" />
+              <div class="slot-pen-info">
+                <span class="slot-pen-name">${penObj.name}</span>
+                <span class="slot-pen-change">${actionText}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      card.innerHTML = `
+        <div class="arcade-hub pen-selection-hub">
+          <div class="hub-header">
+            <button type="button" class="hub-back-btn" onclick="if(penSelectionTimerInterval){clearInterval(penSelectionTimerInterval); penSelectionTimerInterval=null;} window.showFriendSetup()">← BACK</button>
+            <div class="hub-badge">⚡ CHOOSE YOUR PEN ⚡</div>
+            <button type="button" class="hub-random-btn" onclick="window.randomizeMatchPens()">🎲 RANDOM</button>
+          </div>
+
+          <div class="pen-selection-body">
+            <div class="timer-countdown-box">
+              <div class="timer-meta">
+                <span class="timer-label">⏱️ SELECT YOUR PEN:</span>
+                <span class="timer-number" id="pen-timer-val">${penSelectionSecondsRemaining}s</span>
+              </div>
+              <div class="timer-bar-track">
+                <div class="timer-bar-fill" id="pen-timer-bar-fill" style="width: ${(penSelectionSecondsRemaining / 8) * 100}%;"></div>
+              </div>
+            </div>
+
+            <div class="player-slots-grid count-${matchPlayerCount}">
+              ${slotsHtml}
+            </div>
+
+            <div class="selection-footer">
+              <button type="button" class="hub-action-btn btn-start-battle" onclick="if(penSelectionTimerInterval){clearInterval(penSelectionTimerInterval); penSelectionTimerInterval=null;} window.confirmAndLaunchMatch()">
+                🚀 ENTER ARENA NOW
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="inline-pen-picker" class="picker-overlay">
+          <div class="picker-modal">
+            <div class="picker-head">
+              <span class="picker-title" id="picker-target-title">SELECT YOUR PEN</span>
+              <button type="button" class="picker-close-btn" onclick="window.closePenPickerModal()">✕</button>
+            </div>
+            <div class="picker-grid" id="picker-pens-list">
+            </div>
+          </div>
+        </div>
+      `;
+    };
+
+    window.openPenPickerModal = function(slotIndex) {
+      const isMulti = window.PF_MULTIPLAYER && window.PF_MULTIPLAYER.state === 'OPEN';
+      const isHost = window.PF_MULTIPLAYER ? window.PF_MULTIPLAYER.isHost : true;
+      if (isMulti) {
+        const allowedSlot = isHost ? 0 : 1;
+        if (slotIndex !== allowedSlot) {
+          return; // Prevent clicking opponent's slot
+        }
+      }
+      selectingForSlot = slotIndex;
+      const modal = document.getElementById("inline-pen-picker");
+      const title = document.getElementById("picker-target-title");
+      const list = document.getElementById("picker-pens-list");
+      if (!modal || !list) return;
+
+      if (title) title.textContent = `CHOOSE YOUR PEN`;
+
+      list.innerHTML = ALL_12_PENS.map(p => `
+        <div class="picker-item" onclick="window.selectPenForSlot('${p.id}')">
+          <img src="${p.img}" class="picker-item-img" alt="${p.name}" />
+          <div class="picker-item-info">
+            <span class="picker-item-name">${p.name}</span>
+          </div>
+        </div>
+      `).join("");
+
+      modal.classList.add("open");
+    };
+
+    window.closePenPickerModal = function() {
+      const modal = document.getElementById("inline-pen-picker");
+      if (modal) modal.classList.remove("open");
+      selectingForSlot = null;
+    };
+
+    window.selectPenForSlot = function(penId) {
+      if (selectingForSlot !== null) {
+        if (!window.currentChosenPens || !Array.isArray(window.currentChosenPens)) {
+          window.currentChosenPens = ["gripper", "pilotV5", "reynolds-trimax", "reynolds045", "parker", "megatop", "addgel", "classmate-octane"];
+        }
+        window.currentChosenPens[selectingForSlot] = penId;
+        const myName = (localStorage.getItem("pf_name") || "YOU").toUpperCase();
+        if (selectingForSlot === 0 || (window.PF_MULTIPLAYER && !window.PF_MULTIPLAYER.isHost && selectingForSlot === 1)) {
+          setEquippedPenId(penId);
+        }
+        if (window.PF_NET && window.PF_NET.connected) {
+          window.PF_NET.send({
+            type: 'PEN_UPDATE',
+            slot: selectingForSlot,
+            pen: penId,
+            penId: penId,
+            name: myName
+          });
+        }
+      }
+      window.closePenPickerModal();
+      window.showPreMatchPenSelection(matchPlayerCount, matchMode);
+    };
+
+    window.randomizeMatchPens = function() {
+      const shuffled = [...ALL_12_PENS].sort(() => 0.5 - Math.random());
+      if (!window.currentChosenPens || !Array.isArray(window.currentChosenPens)) {
+        window.currentChosenPens = ["gripper", "pilotV5", "reynolds-trimax", "reynolds045", "parker", "megatop", "addgel", "classmate-octane"];
+      }
+      for (let i = 0; i < matchPlayerCount; i++) {
+        window.currentChosenPens[i] = shuffled[i % shuffled.length].id;
+        if (window.PF_NET && window.PF_NET.connected) {
+          window.PF_NET.send({
+            type: 'PEN_UPDATE',
+            slot: i,
+            pen: window.currentChosenPens[i],
+            penId: window.currentChosenPens[i]
+          });
+        }
+      }
+      window.showPreMatchPenSelection(matchPlayerCount, matchMode);
+    };
+
+    window.closeHubAndPlay = function() {
+      const wrap = document.querySelector(".chitwrap");
+      if (wrap) {
+        wrap.classList.remove("show");
+        wrap.setAttribute("inert", "");
+        wrap.setAttribute("aria-hidden", "true");
+      }
+      const diarywrap = document.querySelector(".diarywrap");
+      if (diarywrap) {
+        diarywrap.classList.remove("show");
+        diarywrap.setAttribute("inert", "");
+        diarywrap.setAttribute("aria-hidden", "true");
+      }
+      if (window.__pf && window.__pf.controller) {
+        if (window.PF_MULTIPLAYER && window.PF_MULTIPLAYER.state === 'OPEN') {
+          window.__pf.controller.paused = true;
+        } else {
+          const eqPen = getEquippedPenId();
+          if (window.currentChosenPens) {
+            window.currentChosenPens[0] = eqPen;
+          }
+          if (window.setArenaPlayers && (!window.__pf.pens || !window.__pf.pens["player"] || window.__pf.pens["player"].spec?.id !== eqPen)) {
+            window.setArenaPlayers(window.matchPlayerCount || 2, window.currentChosenPens);
+          }
+          window.__pf.controller.paused = false;
+          window.__pf.controller.phase = "player_aim";
+        }
+      }
+      window.showMatchExitButton();
+      window.updateLiveScoreboard();
+    };
+
+    // Live Scoreboard Sync Logic
+    window.updateLiveScoreboard = function() {
+      const sb = document.getElementById("pf-live-scoreboard");
+      if (!sb) return;
+
+      const pf = window.__pf;
+      const ctrl = pf ? pf.controller : null;
+      const isMulti = window.PF_MULTIPLAYER && window.PF_MULTIPLAYER.state === 'OPEN';
+
+      let p1Name, p1PenId, p2Name, p2PenId, p1Wins, p2Wins, roundNum;
+
+      if (isMulti) {
+        const mp = window.PF_MULTIPLAYER;
+        const mm = window.PF_MULTIPLAYER_MATCH;
+        const localName = (localStorage.getItem("pf_name") || "YOU").toUpperCase();
+        const remoteName = (mp.remoteName || "OPPONENT").toUpperCase();
+
+        if (mp.isHost) {
+          p1Name = localName;
+          p1PenId = (window.currentChosenPens && window.currentChosenPens[0]) ? window.currentChosenPens[0] : getEquippedPenId();
+          p2Name = remoteName;
+          p2PenId = (window.currentChosenPens && window.currentChosenPens[1]) ? window.currentChosenPens[1] : "pilotV5";
+        } else {
+          p1Name = remoteName;
+          p1PenId = (window.currentChosenPens && window.currentChosenPens[0]) ? window.currentChosenPens[0] : "gripper";
+          p2Name = localName;
+          p2PenId = (window.currentChosenPens && window.currentChosenPens[1]) ? window.currentChosenPens[1] : getEquippedPenId();
+        }
+        p1Wins = mm ? mm.scores.player : 0;
+        p2Wins = mm ? mm.scores.rival : 0;
+        roundNum = mm ? mm.round : 1;
+      } else {
+        p1Name = (localStorage.getItem("pf_name") || "YOU").toUpperCase();
+        p1PenId = (window.currentChosenPens && window.currentChosenPens[0]) ? window.currentChosenPens[0] : getEquippedPenId();
+        p2Name = (ctrl && ctrl.rivalName ? ctrl.rivalName : "BUNTY").toUpperCase();
+        p2PenId = (window.currentChosenPens && window.currentChosenPens[1]) ? window.currentChosenPens[1] : "pilotV5";
+        p1Wins = ctrl && ctrl.wins ? (ctrl.wins.player || 0) : 0;
+        p2Wins = ctrl && ctrl.wins ? (ctrl.wins.rival || ctrl.wins.bots || 0) : 0;
+        roundNum = p1Wins + p2Wins + 1;
+      }
+
+      const p1PenObj = ALL_12_PENS.find(p => p.id === p1PenId) || ALL_12_PENS[0];
+      const p2PenObj = ALL_12_PENS.find(p => p.id === p2PenId) || ALL_12_PENS[1];
+
+      const p1NameEl = document.getElementById("score-p1-name");
+      const p1PenEl = document.getElementById("score-p1-pen");
+      const p1ImgEl = document.getElementById("score-p1-img");
+      if (p1NameEl) p1NameEl.textContent = p1Name;
+      if (p1PenEl) p1PenEl.textContent = p1PenObj.short;
+      if (p1ImgEl && p1ImgEl.getAttribute("src") !== p1PenObj.img) p1ImgEl.src = p1PenObj.img;
+
+      const p2NameEl = document.getElementById("score-p2-name");
+      const p2PenEl = document.getElementById("score-p2-pen");
+      const p2ImgEl = document.getElementById("score-p2-img");
+      if (p2NameEl) p2NameEl.textContent = p2Name;
+      if (p2PenEl) p2PenEl.textContent = p2PenObj.short;
+      if (p2ImgEl && p2ImgEl.getAttribute("src") !== p2PenObj.img) p2ImgEl.src = p2PenObj.img;
+
+      const roundText = document.getElementById("score-round-text");
+      if (roundText) roundText.textContent = `ROUND ${roundNum}`;
+
+      const renderPips = (elId, wins, target = 2) => {
+        const el = document.getElementById(elId);
+        if (!el) return;
+        let html = "";
+        for (let i = 0; i < target; i++) {
+          html += `<span class="score-pip ${i < wins ? 'pip-win' : ''}"></span>`;
+        }
+        if (el.innerHTML !== html) {
+          el.innerHTML = html;
+        }
+      };
+
+      renderPips("score-p1-dots", p1Wins, 2);
+      renderPips("score-p2-dots", p2Wins, 2);
+    };
+
+    window.setInterval(window.updateLiveScoreboard, 300);
+
+    // =========================================================================
+    // REAL-TIME VOICE CHAT CONTROLS (P2P WebRTC Audio)
+    // =========================================================================
+    window.toggleVoiceMic = async function() {
+      if (window.PF_MULTIPLAYER) {
+        await window.PF_MULTIPLAYER.toggleMic();
+        window.updateVoiceHUD();
+      }
+    };
+
+    window.toggleVoiceSpeaker = function() {
+      if (window.PF_MULTIPLAYER) {
+        window.PF_MULTIPLAYER.toggleSpeaker();
+        window.updateVoiceHUD();
+      }
+    };
+
+    window.updateVoiceHUD = function() {
+      const hud = document.getElementById("pf-voice-hud");
+      const isMulti = window.PF_MULTIPLAYER && (window.PF_MULTIPLAYER.state === 'OPEN' || window.PF_MULTIPLAYER.state === 'CONNECTING');
+      if (hud) {
+        hud.style.display = isMulti ? "flex" : "none";
+      }
+      if (!window.PF_MULTIPLAYER) return;
+
+      const vState = window.PF_MULTIPLAYER.getVoiceState();
+      const micBtn = document.getElementById("pf-voice-mic-btn");
+      const micIcon = document.getElementById("pf-mic-icon");
+      const micLabel = document.getElementById("pf-mic-label");
+      
+      const spkBtn = document.getElementById("pf-voice-speaker-btn");
+      const spkIcon = document.getElementById("pf-speaker-icon");
+      const spkLabel = document.getElementById("pf-speaker-label");
+
+      if (micBtn && micIcon && micLabel) {
+        if (vState.micMuted) {
+          micBtn.className = "voice-btn mic-muted";
+          micIcon.textContent = "🔇";
+          micLabel.textContent = "MIC OFF";
+        } else {
+          micBtn.className = `voice-btn mic-active ${vState.speakingLocal ? 'is-speaking' : ''}`;
+          micIcon.textContent = "🎙️";
+          micLabel.textContent = "MIC ON";
+        }
+      }
+
+      if (spkBtn && spkIcon && spkLabel) {
+        if (vState.speakerMuted) {
+          spkBtn.className = "voice-btn speaker-muted";
+          spkIcon.textContent = "🔈";
+          spkLabel.textContent = "DEAFENED";
+        } else {
+          spkBtn.className = "voice-btn speaker-active";
+          spkIcon.textContent = "🔊";
+          spkLabel.textContent = "SOUND ON";
+        }
+      }
+    };
+
+    if (window.PF_MULTIPLAYER) {
+      window.PF_MULTIPLAYER.on('voiceStateChanged', () => window.updateVoiceHUD());
+      window.PF_MULTIPLAYER.on('voiceSpeaking', (data) => {
+        const micBtn = document.getElementById("pf-voice-mic-btn");
+        if (data.who === 'local' && micBtn && !window.PF_MULTIPLAYER.isMicMuted) {
+          micBtn.classList.toggle('is-speaking', data.speaking);
+        }
+      });
+      window.PF_MULTIPLAYER.on('stateChange', () => window.updateVoiceHUD());
+    }
+
+    // Responsive Camera FOV for Mobile Portrait & Landscape
+    window.updateResponsiveCameraFOV = function() {
+      if (window.__pf && window.__pf.camera) {
+        const cam = window.__pf.camera;
+        const w = window.innerWidth || 800;
+        const h = window.innerHeight || 600;
+        const aspect = w / h;
+        cam.aspect = aspect;
+        cam.fov = aspect < 1.05 ? Math.min(100, Math.max(52, 2 * Math.atan(0.5121 / aspect) * (180 / Math.PI))) : 52;
+        cam.updateProjectionMatrix();
+      }
+    };
+    window.addEventListener("resize", window.updateResponsiveCameraFOV);
+    window.addEventListener("orientationchange", () => setTimeout(window.updateResponsiveCameraFOV, 100));
+    
+    // =========================================================================
+    // REMOVE ALL BACKGROUND CLASSROOM DESKS & FURNITURE
+    // =========================================================================
+    window.cleanBackgroundFurniture = function() {
+      if (!window.__pf || !window.__pf.scene) return;
+      const scene = window.__pf.scene;
+      
+      scene.traverse(o => {
+        // Keep primary table, pens, and lighting
+        if (o === scene || o.type === 'AmbientLight' || o.type === 'DirectionalLight' || o.type === 'PointLight') return;
+        if (o.name === 'arena-table' || o.name === 'classroom-root' || o.name === 'desk') return;
+        if (o.userData && (o.userData.isTable || o.userData.isPen || o.userData.isStriker)) return;
+        
+        // Hide/remove background classroom props
+        if (o.name && (o.name.includes('chair') || o.name.includes('desk_') || o.name.includes('bench') || o.name.includes('chalkboard') || o.name.includes('wall') || o.name.includes('door'))) {
+          o.visible = false;
+        }
+      });
+    };
+
+    window.addEventListener("DOMContentLoaded", () => {
+      window.hideMatchExitButton();
+
+      // Ensure equipped pen is active on boot
+      const initialPen = getEquippedPenId();
+      if (window.currentChosenPens) {
+        window.currentChosenPens[0] = initialPen;
+      }
+
+      window.updateLiveScoreboard();
+      setTimeout(window.cleanBackgroundFurniture, 500);
+      setTimeout(window.cleanBackgroundFurniture, 1500);
+      setTimeout(window.cleanBackgroundFurniture, 3000);
+      
+      // Auto-diagnose and sync 3D scene
+      setTimeout(() => {
+        if (window.__pf && window.__pf.scene) {
+          if (window.setArenaPlayers && (!window.__pf.pens || !window.__pf.pens["player"] || window.__pf.pens["player"].spec?.id !== initialPen)) {
+            window.setArenaPlayers(2, window.currentChosenPens);
+          }
+          let visibleCount = 0, totalCount = 0;
+          window.__pf.scene.traverse(o => {
+            if (o.isMesh) {
+              totalCount++;
+              if (o.visible) visibleCount++;
+            }
+          });
+          console.log(`[PF SCENE DIAGNOSTIC] Total meshes: ${totalCount}, Visible meshes: ${visibleCount}`);
+        }
+      }, 1200);
+
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("testplay") === "1") {
+        setTimeout(() => {
+          if (window.closeHubAndPlay) window.closeHubAndPlay();
+        }, 800);
+        return;
+      }
+      const roomParam = params.get("room") || params.get("duel");
+      if (roomParam) {
+        currentRoomCode = roomParam.toUpperCase();
+        window.joinRoomWithCode(currentRoomCode);
+      } else if (params.get("setup") === "multi") {
+        setTimeout(() => {
+          if (window.showFriendSetup) window.showFriendSetup();
+        }, 400);
+      } else {
+        setTimeout(() => {
+          if (window.renderArcadeHub) window.renderArcadeHub();
+        }, 400);
+      }
+    });
+  </script>
+
+  <!-- Exit Match Confirmation Modal -->
+  <div id="pf-exit-confirm-modal" class="exit-modal-overlay" style="display:none;">
+    <div class="exit-confirm-card">
+      <div class="exit-modal-badge">⚠️ LEAVE MATCH</div>
+      <h3 class="exit-modal-title">LEAVE THIS MATCH?</h3>
+      <p class="exit-modal-desc">Return to main menu?</p>
+      <div class="exit-modal-btn-row">
+        <button type="button" class="btn-cancel-exit" onclick="window.closeExitConfirmModal()">
+          ▶ KEEP PLAYING
+        </button>
+        <button type="button" class="btn-confirm-exit" onclick="window.confirmExitAndLeaveMatch()">
+          ✕ YES, EXIT
+        </button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

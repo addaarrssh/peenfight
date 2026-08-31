@@ -1,0 +1,206 @@
+/* =====================================================
+   PEN FIGHT — UNIFIED DESIGN TOKENS
+   Theme: "Warm Comic Zine Arena"
+   One source of truth for color, type, shadow, and motion.
+   ===================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Permanent+Marker&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+:root {
+  /* ---------- COLOR: BASE ---------- */
+  --pf-paper: #F5EFDD;          /* primary background, cream newsprint */
+  --pf-paper-light: #FFF9E6;    /* card/panel background, lighter sheet */
+  --pf-paper-dark: #EADAAD;     /* darker paper accent */
+  --pf-ink: #1A1A1A;            /* primary text, borders, outlines */
+  --pf-ink-soft: #3A3630;       /* secondary text on paper */
+  --pf-ink-muted: #6B655B;      /* muted captions / helper text */
+
+  /* ---------- COLOR: ACCENTS (use these, and ONLY these, as accent colors) ---------- */
+  --pf-orange: #FF6B35;         /* primary accent — main CTAs, energy/impact */
+  --pf-teal:   #2E8B8B;         /* secondary accent — info, calm states, links */
+  --pf-mustard:#E8B923;         /* tertiary accent — highlights, badges, stars */
+
+  /* Accent tints (for hover/active/backgrounds — derived, don't invent new hues) */
+  --pf-orange-dark: #E0501C;
+  --pf-orange-light: #FFE8DF;
+  --pf-teal-dark:   #216969;
+  --pf-teal-light:   #E2F2F2;
+  --pf-mustard-dark:#C79A10;
+  --pf-mustard-light:#FFF6D6;
+
+  /* Semantic mapping — never call raw hex in components, use these */
+  --pf-color-primary-action: var(--pf-orange);
+  --pf-color-secondary-action: var(--pf-teal);
+  --pf-color-highlight: var(--pf-mustard);
+  --pf-color-danger: #C13B2E;   /* muted brick red — only for real warnings, not decoration */
+
+  /* ---------- TYPOGRAPHY ---------- */
+  /* Exactly three font families sitewide. */
+  --pf-font-display: 'Bangers', cursive;        /* big headings, titles, callouts, HUD labels */
+  --pf-font-body: 'Space Mono', monospace;      /* body copy, UI labels, buttons, nav */
+  --pf-font-accent: 'Permanent Marker', cursive;/* handwritten accents — captions, tags, scribbled notes only */
+
+  --pf-text-xs: 0.75rem;
+  --pf-text-sm: 0.875rem;
+  --pf-text-base: 1rem;
+  --pf-text-lg: 1.25rem;
+  --pf-text-xl: 1.75rem;
+  --pf-text-2xl: 2.5rem;
+  --pf-text-3xl: 3.5rem;   /* hero titles only */
+
+  /* ---------- BORDERS & SHADOWS (neo-brutalist comic panel style) ---------- */
+  --pf-border-width: 3px;
+  --pf-border: var(--pf-border-width) solid var(--pf-ink);
+  --pf-border-thin: 2px solid var(--pf-ink);
+  --pf-border-thick: 4px solid var(--pf-ink);
+  --pf-radius-sm: 6px;
+  --pf-radius-md: 12px;
+  --pf-radius-lg: 20px;
+  --pf-radius-pill: 999px;
+
+  /* Hard offset shadow — accent color must come from the semantic set above only */
+  --pf-shadow-primary:   4px 4px 0 var(--pf-ink), 7px 7px 0 var(--pf-orange);
+  --pf-shadow-secondary: 4px 4px 0 var(--pf-ink), 7px 7px 0 var(--pf-teal);
+  --pf-shadow-highlight: 4px 4px 0 var(--pf-ink), 7px 7px 0 var(--pf-mustard);
+  --pf-shadow-flat:      3px 3px 0 var(--pf-ink); /* neutral cards, no accent */
+  --pf-shadow-hover-lift: 6px 6px 0 var(--pf-ink); /* on hover, shadow grows as element lifts */
+  --pf-shadow-comic:     6px 6px 0 var(--pf-ink);
+
+  /* ---------- TEXTURE OVERLAYS (apply as background-image layers) ---------- */
+  --pf-texture-halftone: url('/assets/textures/halftone-dots.svg');
+  --pf-texture-torn-edge: url('/assets/textures/torn-edge.svg');
+
+  /* ---------- MOTION ---------- */
+  --pf-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --pf-duration-fast: 120ms;
+  --pf-duration-base: 200ms;
+
+  /* Standard interactive states — apply identically to every button/card sitewide */
+  --pf-hover-transform: translateY(-3px) scale(1.02) rotate(-0.5deg);
+  --pf-active-transform: translateY(1px) scale(0.98);
+}
+
+/* ---------- COMPONENT BASELINE CLASSES ---------- */
+
+.pf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--pf-font-body);
+  font-weight: 700;
+  font-size: var(--pf-text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.65rem 1.4rem;
+  border: var(--pf-border);
+  border-radius: var(--pf-radius-pill);
+  box-shadow: var(--pf-shadow-flat);
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform var(--pf-duration-base) var(--pf-ease-bounce),
+              box-shadow var(--pf-duration-base) var(--pf-ease-bounce),
+              background-color var(--pf-duration-base) ease;
+  user-select: none;
+}
+
+.pf-btn-primary {
+  background: var(--pf-orange);
+  color: var(--pf-paper-light);
+  box-shadow: 3px 3px 0 var(--pf-ink), 6px 6px 0 var(--pf-orange-dark);
+}
+.pf-btn-primary:hover {
+  transform: var(--pf-hover-transform);
+  box-shadow: var(--pf-shadow-hover-lift);
+  background: var(--pf-orange-dark);
+  color: #fff;
+}
+.pf-btn-primary:active {
+  transform: var(--pf-active-transform);
+  box-shadow: 2px 2px 0 var(--pf-ink);
+}
+
+.pf-btn-secondary {
+  background: var(--pf-teal);
+  color: var(--pf-paper-light);
+  box-shadow: 3px 3px 0 var(--pf-ink), 6px 6px 0 var(--pf-teal-dark);
+}
+.pf-btn-secondary:hover {
+  transform: var(--pf-hover-transform);
+  box-shadow: var(--pf-shadow-hover-lift);
+  background: var(--pf-teal-dark);
+  color: #fff;
+}
+.pf-btn-secondary:active {
+  transform: var(--pf-active-transform);
+  box-shadow: 2px 2px 0 var(--pf-ink);
+}
+
+.pf-btn-highlight {
+  background: var(--pf-mustard);
+  color: var(--pf-ink);
+  box-shadow: 3px 3px 0 var(--pf-ink), 6px 6px 0 var(--pf-mustard-dark);
+}
+.pf-btn-highlight:hover {
+  transform: var(--pf-hover-transform);
+  box-shadow: var(--pf-shadow-hover-lift);
+  background: var(--pf-mustard-dark);
+}
+.pf-btn-highlight:active {
+  transform: var(--pf-active-transform);
+  box-shadow: 2px 2px 0 var(--pf-ink);
+}
+
+.pf-btn-neutral {
+  background: var(--pf-paper-light);
+  color: var(--pf-ink);
+  box-shadow: var(--pf-shadow-flat);
+}
+.pf-btn-neutral:hover {
+  transform: var(--pf-hover-transform);
+  background: #ffffff;
+  box-shadow: var(--pf-shadow-hover-lift);
+}
+.pf-btn-neutral:active {
+  transform: var(--pf-active-transform);
+}
+
+.pf-card {
+  font-family: var(--pf-font-body);
+  background: var(--pf-paper-light);
+  color: var(--pf-ink);
+  border: var(--pf-border);
+  border-radius: var(--pf-radius-md);
+  box-shadow: var(--pf-shadow-primary);
+  padding: 1.5rem;
+  position: relative;
+}
+
+.pf-heading {
+  font-family: var(--pf-font-display);
+  color: var(--pf-ink);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pf-accent-tag {
+  font-family: var(--pf-font-accent);
+  color: var(--pf-orange);
+  display: inline-block;
+}
+
+.pf-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--pf-font-body);
+  font-weight: 700;
+  font-size: var(--pf-text-xs);
+  padding: 3px 8px;
+  border: var(--pf-border-thin);
+  border-radius: var(--pf-radius-sm);
+  background: var(--pf-mustard);
+  color: var(--pf-ink);
+  box-shadow: 2px 2px 0 var(--pf-ink);
+  text-transform: uppercase;
+}

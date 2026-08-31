@@ -1,0 +1,175 @@
+/* =====================================================
+   PEN FIGHT — UNIVERSAL COMIC TOP NAVIGATION
+   Theme: "Warm Comic Zine Arena"
+   ===================================================== */
+
+.pf-top-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: var(--pf-paper-light);
+  border-bottom: var(--pf-border);
+  box-shadow: 0 4px 0 var(--pf-ink);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  font-family: var(--pf-font-body);
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.pf-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--pf-ink);
+}
+
+.pf-nav-brand-text {
+  font-family: var(--pf-font-display);
+  font-size: 26px;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  color: var(--pf-ink);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pf-nav-brand-tag {
+  font-family: var(--pf-font-accent);
+  font-size: 11px;
+  background: var(--pf-orange);
+  color: var(--pf-paper-light);
+  padding: 2px 7px;
+  border-radius: var(--pf-radius-sm);
+  border: 1.5px solid var(--pf-ink);
+  box-shadow: 2px 2px 0 var(--pf-ink);
+  transform: rotate(-3deg);
+  letter-spacing: 0.04em;
+}
+
+.pf-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pf-nav-item a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  font-size: var(--pf-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--pf-ink);
+  padding: 6px 12px;
+  border: 2px solid transparent;
+  border-radius: var(--pf-radius-pill);
+  transition: transform var(--pf-duration-fast) var(--pf-ease-bounce),
+              background var(--pf-duration-fast) ease,
+              border-color var(--pf-duration-fast) ease,
+              box-shadow var(--pf-duration-fast) ease;
+}
+
+.pf-nav-item a:hover {
+  background: var(--pf-paper);
+  border-color: var(--pf-ink);
+  box-shadow: 2px 2px 0 var(--pf-ink);
+  transform: translateY(-2px);
+}
+
+.pf-nav-item.active a {
+  background: var(--pf-mustard);
+  color: var(--pf-ink);
+  border-color: var(--pf-ink);
+  box-shadow: 2px 2px 0 var(--pf-ink), 4px 4px 0 var(--pf-orange);
+  transform: translateY(-2px) rotate(-1deg);
+}
+
+.pf-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pf-sound-btn {
+  background: var(--pf-paper);
+  border: var(--pf-border-thin);
+  border-radius: var(--pf-radius-sm);
+  box-shadow: 2px 2px 0 var(--pf-ink);
+  padding: 6px 10px;
+  font-family: var(--pf-font-body);
+  font-size: var(--pf-text-xs);
+  font-weight: 700;
+  color: var(--pf-ink);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: transform var(--pf-duration-fast) var(--pf-ease-bounce),
+              background var(--pf-duration-fast) ease;
+}
+
+.pf-sound-btn:hover {
+  transform: translateY(-2px);
+  background: var(--pf-paper-dark);
+  box-shadow: 3px 3px 0 var(--pf-ink);
+}
+
+.pf-sound-btn.muted {
+  background: var(--pf-paper);
+  opacity: 0.75;
+}
+
+.pf-nav-mobile-toggle {
+  display: none;
+  background: var(--pf-paper);
+  border: var(--pf-border-thin);
+  border-radius: var(--pf-radius-sm);
+  box-shadow: 2px 2px 0 var(--pf-ink);
+  padding: 6px 10px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .pf-nav-links {
+    display: none;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    background: var(--pf-paper-light);
+    border-bottom: var(--pf-border);
+    box-shadow: 0 6px 0 var(--pf-ink);
+    flex-direction: column;
+    padding: 14px 20px;
+    gap: 10px;
+  }
+
+  .pf-nav-links.open {
+    display: flex;
+  }
+
+  .pf-nav-item a {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 10px 14px;
+    font-size: var(--pf-text-sm);
+  }
+
+  .pf-nav-mobile-toggle {
+    display: flex;
+  }
+}

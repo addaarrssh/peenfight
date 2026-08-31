@@ -1,0 +1,17 @@
+{
+  "id": "/",
+  "name": "Pen Fight",
+  "short_name": "Pen Fight",
+  "description": "Flick your pen, knock theirs off the desk. Best of five, winner keeps the pen.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#231a12",
+  "theme_color": "#c4691a",
+  "icons": [
+    { "src": "/favicon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/favicon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/favicon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

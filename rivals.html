@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Opponents — Pen Fight</title>
+  <meta name="description" content="View Pen Fight opponents and their pen stats." />
+  <link rel="stylesheet" href="/pen-fight-tokens.css" />
+  <link rel="stylesheet" href="/assets/comic-nav.css" />
+  <link rel="stylesheet" href="funky-system.css" />
+  <script src="/assets/comic-nav.js" defer></script>
+
+  <style>
+    /* Trading Card Flip Styles */
+    .rivals-grid {
+      max-width: 1240px;
+      margin: 40px auto 80px;
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 36px;
+    }
+
+    .flip-card-wrapper {
+      perspective: 1000px;
+      height: 440px;
+      cursor: pointer;
+    }
+
+    .flip-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      transition: transform var(--pf-duration-base) var(--pf-ease-bounce);
+      transform-style: preserve-3d;
+    }
+
+    .flip-card-wrapper.flipped .flip-card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .flip-card-front, .flip-card-back {
+      position: absolute;
+      inset: 0;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      border: var(--pf-border-thick);
+      border-radius: var(--pf-radius-md);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 6px 6px 0px var(--pf-ink), 10px 10px 0px var(--pf-orange);
+    }
+
+    .flip-card-front {
+      background: var(--pf-paper-light);
+      transform: rotate(0deg);
+    }
+
+    .flip-card-back {
+      background: var(--pf-mustard-light);
+      transform: rotateY(180deg);
+      border-color: var(--pf-ink);
+      box-shadow: 6px 6px 0px var(--pf-ink), 10px 10px 0px var(--pf-mustard);
+      text-align: left;
+    }
+
+    /* Individual Card Random Tilts */
+    .card-tilt-1 { transform: rotate(-2deg); }
+    .card-tilt-2 { transform: rotate(1.5deg); }
+    .card-tilt-3 { transform: rotate(-1.5deg); }
+    .card-tilt-4 { transform: rotate(2deg); }
+    .card-tilt-5 { transform: rotate(-2.5deg); }
+    .card-tilt-6 { transform: rotate(1.5deg); }
+    .card-tilt-7 { transform: rotate(-1.5deg); }
+    .card-tilt-8 { transform: rotate(2deg); }
+    .card-tilt-9 { transform: rotate(-2deg); }
+    .card-tilt-10 { transform: rotate(1.5deg); }
+    .card-tilt-11 { transform: rotate(-3deg); }
+
+    .flip-card-wrapper:hover .flip-card-front {
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: 8px 8px 0px var(--pf-ink), 14px 14px 0px var(--pf-orange);
+    }
+
+    .stat-row {
+      margin: 6px 0;
+    }
+    .stat-label {
+      font-family: var(--pf-font-accent);
+      font-size: 0.85rem;
+      color: var(--pf-ink);
+      display: flex;
+      justify-content: space-between;
+    }
+    .stat-bar-track {
+      width: 100%;
+      height: 10px;
+      background: var(--pf-paper);
+      border: 2px solid var(--pf-ink);
+      border-radius: var(--pf-radius-pill);
+      margin-top: 2px;
+      overflow: hidden;
+      position: relative;
+    }
+    .stat-bar-fill {
+      height: 100%;
+      background: var(--pf-orange);
+    }
+
+    .flip-indicator {
+      font-family: var(--pf-font-accent);
+      font-size: 0.82rem;
+      color: var(--pf-orange);
+      background: var(--pf-paper-light);
+      border: 1.5px dashed var(--pf-orange);
+      padding: 3px 8px;
+      border-radius: var(--pf-radius-sm);
+      display: inline-block;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body class="theme-pink">
+
+  <!-- ==========================================================================
+       PAGE HERO
+       ========================================================================== -->
+  <section class="page-hero">
+    <div class="tape-strip" style="top: 15px; left: 40px; transform: rotate(-20deg);"></div>
+    <div class="tape-strip" style="top: 20px; right: 50px; transform: rotate(18deg);"></div>
+
+    <h1 class="page-hero-title">OPPONENTS</h1>
+    <div>
+      <p class="page-hero-subtitle">
+        TAP CARD TO FLIP
+      </p>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       RIVALS FULL ROSTER GRID
+       ========================================================================== -->
+  <main class="rivals-grid">
+
+    <!-- Card 1: Rohan -->
+    <div class="flip-card-wrapper card-tilt-1" onclick="this.classList.toggle('flipped')">
+      <div class="flip-card-inner">
+        <!-- FRONT -->
+        <div class="flip-card-front">
+          <div class="tape-strip" style="top: -12px; left: 20px; transform: rotate(-4deg);"></div>
+          
+          <svg viewBox="0 0 100 100" style="width: 110px; height: 110px; margin: 0 auto;">
+            <circle cx="50" cy="45" r="28" fill="#F5EFDD" stroke="#1A1A1A" stroke-width="3"/>
+            <path d="M22 35 Q 35 15 50 18 Q 65 12 78 35" fill="#1A1A1A"/>
+            <circle cx="42" cy="42" r="3" fill="#1A1A1A"/><circle cx="58" cy="42" r="3" fill="#1A1A1A"/>
+            <path d="M42 55 Q 50 62 60 54" stroke="#1A1A1A" stroke-width="3" fill="none"/>
+            <rect x="36" y="73" width="28" height="24" fill="#FF6B35" stroke="#1A1A1A" stroke-width="3"/>
+          </svg>
+
+          <div>
+            <h3 style="font-family: var(--font-display); font-size: 1.8rem;">ROHAN</h3>
+            <div style="font-family: var(--font-body); font-weight: 800; font-size: 0.85rem; color: var(--riso-teal);">PEN: REYNOLDS 045</div>
+            <p style="font-family: var(--font-hand); font-size: 1.2rem; font-weight: 700; color: #444; margin-top: 6px;">
+              "Balanced all-rounder"
+            </p>
+          </div>
+
+          <div class="flip-indicator">TAP TO FLIP ⟲</div>
+        </div>
+
+        <!-- BACK -->
+        <div class="flip-card-back">
+          <h4 style="font-family: var(--font-marker); font-size: 1.2rem; color: var(--riso-pink); border-bottom: 2px solid var(--ink); padding-bottom: 4px;">ROHAN STATS</h4>
+          
+          <div style="margin: 10px 0;">
+            <div class="stat-row">
+              <div class="stat-label"><span>POWER</span><span>65%</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" style="width: 65%;"></div></div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-label"><span>SPEED</span><span>80%</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" style="width: 80%;"></div></div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-label"><span>GRIP</span><span>45%</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" style="width: 45%;"></div></div>
+            </div>
+          </div>
+
+          <div style="font-family: var(--font-hand); font-size: 1.15rem; font-weight: 700; color: #333; line-height: 1.3;">
+            <p><strong>Style:</strong> Balanced flicks</p>
+          </div>
+
+          <div class="flip-indicator" style="align-self: center;">TAP TO FLIP ⟲</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Priya -->
+    <div class="flip-card-wrapper card-tilt-2" onclick="this.classList.toggle('flipped')">
+      <div class="flip-card-inner">
+        <!-- FRONT -->
+        <div class="flip-card-front">
+          <div class="staple" style="top: 8px; right: 12px;"></div>
+          
+          <svg viewBox="0 0 100 100" style="width: 110px; height: 110px; margin: 0 auto;">
+            <circle cx="50" cy="45" r="28" fill="#F5EFDD" stroke="#1A1A1A" stroke-width="3"/>
+            <path d="M22 35 C 10 20 8 45 18 50" fill="#1A1A1A"/><path d="M78 35 C 90 20 92 45 82 50" fill="#1A1A1A"/>
+            <circle cx="40" cy="44" r="7" stroke="#2E8B8B" stroke-width="2.5" fill="none"/>
+            <circle cx="60" cy="44" r="7" stroke="#2E8B8B" stroke-width="2.5" fill="none"/>
+            <line x1="47" y1="44" x2="53" y2="44" stroke="#2E8B8B" stroke-width="2.5"/>
+            <path d="M44 58 Q 50 63 56 58" stroke="#1A1A1A" stroke-width="2.5" fill="none"/>
+            <rect x="36" y="73" width="28" height="24" fill="#2E8B8B" stroke="#1A1A1A" stroke-width="3"/>
+          </svg>
+
+          <div>
+            <h3 style="font-family: var(--font-display); font-size: 1.8rem;">PRIYA</h3>
+            <div style="font-family: var(--font-body); font-weight: 800; font-size: 0.85rem; color: var(--riso-teal);">PEN: PILOT V5</div>
+            <p style="font-family: var(--font-hand); font-size: 1.2rem; font-weight: 700; color: #444; margin-top: 6px;">
+              "Fast speed dart"
+            </p>
+          </div>
+
+          <div class="flip-indicator">TAP TO FLIP ⟲</div>
+        </div>
+
+        <!-- BACK -->
+        <div class="flip-card-back">
+          <h4 style="font-family: var(--font-marker); font-size: 1.2rem; color: var(--riso-pink); border-bottom: 2px solid var(--ink); padding-bottom: 4px;">PRIYA STATS</h4>
+          
+          <div style="margin: 10px 0;">
+            <div class="stat-row">
+              <div class="stat-label"><span>POWER</span><span>70%</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" style="width: 70%;"></div></div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-label"><span>SPEED</span><span>95%</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" style="width: 95%;"></div></div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-label"><span>GRIP</span><span>40%</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" style="width: 40%;"></div></div>
+            </div>
+          </div>
+
+          <div style="font-family: var(--font-hand); font-size: 1.15rem; font-weight: 700; color: #333; line-height: 1.3;">
+            <p><strong>Style:</strong> Fast corner shots</p>
+          </div>
+
+          <div class="flip-indicator" style="align-self: center;">TAP TO FLIP ⟲</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: Vikram -->
+    <div class="flip-card-wrapper card-tilt-3" onclick="this.classList.toggle('flipped')">
+      <div class="flip-card-inner">
+        <!-- FRONT -->
+        <div class="flip-card-front">
+          <div class="tape-strip" style="top: -12px; right: 20px; transform: rotate(5deg);"></div>
+          
+          <svg viewBox="0 0 100 100" style="width: 110px; height: 110px; margin: 0 auto;">
+            <circle cx="50" cy="45" r="28" fill="#F5EFDD" stroke="#1A1A1A" stroke-width="3"/>
+            <path d="M22 32 L 32 18 L 44 24 L 54 14 L 66 22 L 78 30" stroke="#1A1A1A" stroke-width="3" fill="#1A1A1A"/>
+            <line x1="38" y1="42" x2="46" y2="45" stroke="#1A1A1A" stroke-width="3"/>
+            <line x1="62" y1="45" x2="54" y2="42" stroke="#1A1A1A" stroke-width="3"/>
+            <path d="M42 56 L 58 56" stroke="#1A1A1A" stroke-width="3"/>
+            <rect x="36" y="73" width="28" height="24" fill="#E8B923" stroke="#1A1A1A" stroke-width="3"/>
+          </svg>
+
+          <div>
+            <h3 style="font-family: var(--font-display); font-size: 1.8rem;">VIKRAM</h3>
+            <div style="font-family: var(--font-body); font-weight: 800; font-size: 0.85rem; color: var(--riso-teal);">PEN: CELLO GRIPPER</div>
+            <p style="font-family: var(--font-hand); font-size: 1.2rem; font-weight: 700; color: #444; margin-top: 6px;">
+              "High table grip"
+            </p>
+          </div>
+
+          <div class="flip-indicator">TAP TO FLIP ⟲</div>
+        </div>
+
+        <!-- BACK -->
+        <div class="flip-card-back">
+          <h4 style="font-family: var(--font-marker); font-size: 1.2rem; color: var(--riso-pink); border-bottom: 2px solid var(--ink); padding-bottom: 4px;">VIKRAM STATS</h4>
+          
+          <div style="margin: 10px 0;">
+            <div class="stat-row">
+              <div class="stat-label"><span>POWER</span><span>60%</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" style="width: 60%;"></div></div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-label"><span>SPEED</span><span>50%</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" style="width: 50%;"></div></div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-label"><span>GRIP</span><span>95%</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" style="width: 95%;"></div></div>
+            </div>
+          </div>
+
+          <div style="font-family: var(--font-hand); font-size: 1.15rem; font-weight: 700; color: #333; line-height: 1.3;">
+            <p><strong>Style:</strong> High friction defense</p>
+          </div>
+
+          <div class="flip-indicator" style="align-self: center;">TAP TO FLIP ⟲</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 4: Bunty -->
+    <div class="flip-card-wrapper card-tilt-4" onclick="this.classList.toggle('flipped')">
+      <div class="flip-card-inner">
+        <!-- FRONT -->
+        <div class="flip-card-front">
+          <div class="staple" style="top: 8px; left: 12px;"></div>
+          
+          <svg viewBox="0 0 100 100" style="width: 110px; height: 110px; margin: 0 auto;">
+            <circle cx="50" cy="46" r="30" fill="#F5EFDD" stroke="#1A1A1A" stroke-width="3"/>
+            <path d="M20 35 Q 50 15 80 35 L 90 38 L 75 42 Z" fill="#E85D75" stroke="#1A1A1A" stroke-width="2"/>
+            <circle cx="42" cy="48" r="3" fill="#1A1A1A"/><circle cx="58" cy="48" r="3" fill="#1A1A1A"/>
+            <path d="M45 60 Q 50 66 55 60" stroke="#1A1A1A" stroke-width="3" fill="none"/>
+            <rect x="34" y="76" width="32" height="24" fill="#1A1A1A"/>
+          </svg>
+
+          <div>
+            <h3 style="font-family: var(--font-display); font-size: 1.8rem;">BUNTY</h3>
+            <div style="font-family: var(--font-body); font-weight: 800; font-size: 0.85rem; color: var(--riso-teal);">PEN: MONTEX MEGATOP</div>
+            <p style="font-family: var(--font-hand); font-size: 1.2rem; font-weight: 700; color: #444; margin-top: 6px;">
+              "Heavy top hit"
+            </p>
+          </div>
+
+          <div class="flip-indicator">TAP TO FLIP ⟲</div>
+        </div>
+
+        <!-- BACK -->
+        <div class="flip-card-back">
+          <h4 style="font-family: var(--font-marker); font-size: 1.2rem; color: var(--riso-pink); border-bottom: 2px solid var(--ink); padding-bottom: 4px;">BUNTY STATS</h4>
+          
+          <div style="margin: 10px 0;">
+            <div class="stat-row">
+              <div class="stat-label"><span>POWER</span><span>90%</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" style="width: 90%;"></div></div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-label"><span>SPEED</span><span>40%</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" style="width: 40%;"></div></div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-label"><span>GRIP</span><span>75%</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" style="width: 75%;"></div></div>
+            </div>
+          </div>
+
+          <div style="font-family: var(--font-hand); font-size: 1.15rem; font-weight: 700; color: #333; line-height: 1.3;">
+            <p><strong>Style:</strong> Heavy power flicks</p>
+          </div>
+
+          <div class="flip-indicator" style="align-self: center;">TAP TO FLIP ⟲</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 5: Pooja -->
+    <div class="flip-card-wrapper card-tilt-5" onclick="this.classList.toggle('flipped')">
+      <div class="flip-card-inner">
+        <!-- FRONT -->
+        <div class="flip-card-front">
+          <div class="tape-strip" style="top: -12px; left: 30%; transform: rotate(2deg);"></div>
+          
+          <svg viewBox="0 0 100 100" style="width: 110px; height: 110px; margin: 0 auto;">
+            <circle cx="50" cy="45" r="28" fill="#F5EFDD" stroke="#1A1A1A" stroke-width="3"/>
+            <path d="M22 30 Q 50 8 78 30" fill="#2E8B8B"/>
+            <circle cx="42" cy="44" r="3" fill="#1A1A1A"/><circle cx="58" cy="44" r="3" fill="#1A1A1A"/>
+            <path d="M44 56 Q 50 62 56 56" stroke="#1A1A1A" stroke-width="3" fill="none"/>
+            <rect x="36" y="73" width="28" height="24" fill="#FF6B35" stroke="#1A1A1A" stroke-width="3"/>
+          </svg>
+
+          <div>
+            <h3 style="font-family: var(--font-display); font-size: 1.8rem;">POOJA</h3>
+            <div style="font-family: var(--font-body); font-weight: 800; font-size: 0.85rem; color: var(--riso-teal);">PEN: ADD GEL</div>
+            <p style="font-family: var(--font-hand); font-size: 1.2rem; font-weight: 700; color: #444; margin-top: 6px;">
+              "Solid mass strike"
+            </p>
+          </div>
+
+          <div class="flip-indicator">TAP TO FLIP ⟲</div>
+        </div>
+
+        <!-- BACK -->
+        <div class="flip-card-back">
+          <h4 style="font-family: var(--font-marker); font-size: 1.2rem; color: var(--riso-pink); border-bottom: 2px solid var(--ink); padding-bottom: 4px;">POOJA STATS</h4>
+          
+          <div style="margin: 10px 0;">
+            <div class="stat-row">
+              <div class="stat-label"><span>POWER</span><span>75%</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" style="width: 75%;"></div></div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-label"><span>SPEED</span><span>65%</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" style="width: 65%;"></div></div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-label"><span>GRIP</span><span>80%</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" style="width: 80%;"></div></div>
+            </div>
+          </div>
+
+          <div style="font-family: var(--font-hand); font-size: 1.15rem; font-weight: 700; color: #333; line-height: 1.3;">
+            <p><strong>Style:</strong> Accurate angle shots</p>
+          </div>
+
+          <div class="flip-indicator" style="align-self: center;">TAP TO FLIP ⟲</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 6: Nikhil -->
+    <div class="flip-card-wrapper card-tilt-6" onclick="this.classList.toggle('flipped')">
+      <div class="flip-card-inner">
+        <!-- FRONT -->
+        <div class="flip-card-front">
+          <div class="staple" style="top: 8px; right: 12px;"></div>
+          
+          <svg viewBox="0 0 100 100" style="width: 110px; height: 110px; margin: 0 auto;">
+            <circle cx="50" cy="45" r="28" fill="#F5EFDD" stroke="#1A1A1A" stroke-width="3"/>
+            <path d="M22 35 Q 30 18 60 20 L 78 35" fill="#1A1A1A"/>
+            <polygon points="50,73 46,90 50,96 54,90" fill="#E85D75"/>
+            <circle cx="42" cy="44" r="3" fill="#1A1A1A"/><circle cx="58" cy="44" r="3" fill="#1A1A1A"/>
+            <path d="M45 56 L 55 56" stroke="#1A1A1A" stroke-width="3"/>
+            <rect x="36" y="73" width="28" height="24" fill="#FFF" stroke="#1A1A1A" stroke-width="3"/>
+          </svg>
+
+          <div>
+            <h3 style="font-family: var(--font-display); font-size: 1.8rem;">NIKHIL</h3>
+            <div style="font-family: var(--font-body); font-weight: 800; font-size: 0.85rem; color: var(--riso-teal);">PEN: PARKER VECTOR</div>
+            <p style="font-family: var(--font-hand); font-size: 1.2rem; font-weight: 700; color: #444; margin-top: 6px;">
+              "Heavy steel hit"
+            </p>
+          </div>
+
+          <div class="flip-indicator">TAP TO FLIP ⟲</div>
+        </div>
+
+        <!-- BACK -->
+        <div class="flip-card-back">
+          <h4 style="font-family: var(--font-marker); font-size: 1.2rem; color: var(--riso-pink); border-bottom: 2px solid var(--ink); padding-bottom: 4px;">NIKHIL STATS</h4>
+          
+          <div style="margin: 10px 0;">
+            <div class="stat-row">
+              <div class="stat-label"><span>POWER</span><span>92%</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" style="width: 92%;"></div></div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-label"><span>SPEED</span><span>55%</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" style="width: 55%;"></div></div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-label"><span>GRIP</span><span>88%</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" style="width: 88%;"></div></div>
+            </div>
+          </div>
+
+          <div style="font-family: var(--font-hand); font-size: 1.15rem; font-weight: 700; color: #333; line-height: 1.3;">
+            <p><strong>Style:</strong> High momentum hit</p>
+          </div>
+
+          <div class="flip-indicator" style="align-self: center;">TAP TO FLIP ⟲</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 7: Samar -->
+    <div class="flip-card-wrapper card-tilt-7" onclick="this.classList.toggle('flipped')">
+      <div class="flip-card-inner">
+        <!-- FRONT -->
+        <div class="flip-card-front" style="background: #FFF6E0; border-color: var(--riso-orange); box-shadow: 10px 10px 0px var(--riso-orange);">
+          
+          <svg viewBox="0 0 100 100" style="width: 110px; height: 110px; margin: 0 auto;">
+            <polygon points="35,18 42,28 50,15 58,28 65,18 63,32 37,32" fill="#E8B923" stroke="#1A1A1A" stroke-width="2"/>
+            <circle cx="50" cy="48" r="28" fill="#F5EFDD" stroke="#1A1A1A" stroke-width="3"/>
+            <path d="M25 35 Q 50 22 75 35" fill="#1A1A1A"/>
+            <circle cx="42" cy="46" r="3.5" fill="#1A1A1A"/><circle cx="58" cy="46" r="3.5" fill="#1A1A1A"/>
+            <path d="M40 58 Q 50 68 60 58" stroke="#1A1A1A" stroke-width="3.5" fill="none"/>
+            <rect x="36" y="76" width="28" height="24" fill="#FF6B35" stroke="#1A1A1A" stroke-width="3"/>
+          </svg>
+
+          <div>
+            <h3 style="font-family: var(--font-display); font-size: 1.8rem; color: var(--riso-orange);">SAMAR</h3>
+            <div style="font-family: var(--font-body); font-weight: 800; font-size: 0.88rem; color: var(--riso-orange);">PEN: REYNOLDS TRIMAX</div>
+            <p style="font-family: var(--font-hand); font-size: 1.25rem; font-weight: 700; color: #333; margin-top: 6px;">
+              "Triangular anti-roll"
+            </p>
+          </div>
+
+          <div class="flip-indicator" style="color: var(--riso-orange); border-color: var(--riso-orange);">TAP TO FLIP ⟲</div>
+        </div>
+
+        <!-- BACK -->
+        <div class="flip-card-back" style="background: #FFF0E6; border-color: var(--riso-orange); box-shadow: 10px 10px 0px var(--riso-orange);">
+          <h4 style="font-family: var(--font-marker); font-size: 1.3rem; color: var(--riso-orange); border-bottom: 2px solid var(--ink); padding-bottom: 4px;">SAMAR STATS</h4>
+          
+          <div style="margin: 10px 0;">
+            <div class="stat-row">
+              <div class="stat-label"><span>POWER</span><span>98%</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" style="width: 98%; background: var(--riso-orange);"></div></div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-label"><span>SPEED</span><span>85%</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" style="width: 85%; background: var(--riso-orange);"></div></div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-label"><span>GRIP</span><span>99%</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" style="width: 99%; background: var(--riso-orange);"></div></div>
+            </div>
+          </div>
+
+          <div style="font-family: var(--font-hand); font-size: 1.15rem; font-weight: 700; color: #333; line-height: 1.3;">
+            <p><strong>Style:</strong> Anti-roll edge defense</p>
+          </div>
+
+          <div class="flip-indicator" style="align-self: center; color: var(--riso-orange); border-color: var(--riso-orange);">TAP TO FLIP ⟲</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- GLOBAL FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-backcover-box">
+      <div class="tape-strip" style="top: -14px; left: 30px; transform: rotate(-15deg);"></div>
+      <div class="tape-strip" style="top: -14px; right: 30px; transform: rotate(12deg);"></div>
+
+      <h2 style="font-family: var(--font-display); font-size: clamp(2.4rem, 5vw, 3.8rem); text-transform: uppercase;">
+        READY TO <span style="color: var(--riso-pink);">PLAY?</span>
+      </h2>
+
+      <div class="footer-nav-links">
+        <a href="/index.html">Arena</a>
+        <a href="/pens.html">Arsenal</a>
+        <a href="/rules.html">Rules</a>
+        <a href="/download.html">Download</a>
+      </div>
+
+      <a href="/" class="btn-chunky btn-pink" style="font-size: 1.4rem; padding: 14px 36px;">
+        <span>PLAY NOW ↴</span>
+      </a>
+
+      <div class="footer-closing-tape">
+        ★ PEN FIGHT ★
+      </div>
+    </div>
+
+    <p class="footer-copyright">
+      Pen Fight &bull; Play Online 3D
+    </p>
+  </footer>
+
+</body>
+</html>

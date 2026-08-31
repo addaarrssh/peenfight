@@ -1,0 +1,3 @@
+/* Redirect legacy funky-theme.css to unified tokens and comic-hud.css */
+@import url('/pen-fight-tokens.css');
+@import url('/assets/comic-hud.css');

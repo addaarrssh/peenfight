@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Rules — Pen Fight</title>
+  <meta name="description" content="Pen Fight game rules." />
+  
+  <link rel="stylesheet" href="/pen-fight-tokens.css" />
+  <link rel="stylesheet" href="/assets/comic-nav.css" />
+  <script src="/assets/comic-nav.js" defer></script>
+
+  <style>
+    body {
+      background-color: var(--pf-paper);
+      background-image: var(--pf-texture-halftone);
+      color: var(--pf-ink);
+      font-family: var(--pf-font-body);
+      margin: 0;
+      padding-top: 70px;
+      user-select: none;
+      box-sizing: border-box;
+      line-height: 1.5;
+    }
+
+    .rules-hero {
+      text-align: center;
+      max-width: 800px;
+      margin: 20px auto 30px;
+      padding: 0 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hero-badge {
+      font-family: var(--pf-font-accent);
+      font-size: 13px;
+      color: var(--pf-paper-light);
+      background: var(--pf-orange);
+      padding: 4px 14px;
+      border: var(--pf-border-thin);
+      border-radius: var(--pf-radius-sm);
+      box-shadow: 2px 2px 0 var(--pf-ink);
+      transform: rotate(-2deg);
+    }
+
+    .hero-title {
+      font-family: var(--pf-font-display);
+      font-size: clamp(32px, 6vw, 54px);
+      letter-spacing: 0.04em;
+      color: var(--pf-ink);
+      margin: 4px 0 0 0;
+      line-height: 1.05;
+    }
+
+    .hero-sub {
+      font-size: var(--pf-text-sm);
+      color: var(--pf-ink-soft);
+      max-width: 65ch;
+      margin: 0;
+    }
+
+    /* Main Comic Strip Flow */
+    .comic-strip-container {
+      max-width: 860px;
+      margin: 0 auto 60px;
+      padding: 0 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      box-sizing: border-box;
+    }
+
+    .comic-panel {
+      background: var(--pf-paper-light);
+      background-image: var(--pf-texture-halftone);
+      border: var(--pf-border-thick);
+      border-radius: var(--pf-radius-lg);
+      box-shadow: 6px 6px 0 var(--pf-ink), 12px 12px 0 var(--pf-orange);
+      padding: 24px;
+      position: relative;
+      transition: transform var(--pf-duration-base) var(--pf-ease-bounce),
+                  box-shadow var(--pf-duration-base) ease;
+    }
+
+    .comic-panel:hover {
+      transform: translateY(-3px) scale(1.01);
+      box-shadow: 8px 8px 0 var(--pf-ink), 16px 16px 0 var(--pf-orange);
+    }
+
+    .panel-1 { transform: rotate(-0.5deg); }
+    .panel-2 { transform: rotate(0.6deg); box-shadow: 6px 6px 0 var(--pf-ink), 12px 12px 0 var(--pf-teal); }
+    .panel-3 { transform: rotate(-0.4deg); box-shadow: 6px 6px 0 var(--pf-ink), 12px 12px 0 var(--pf-color-danger); }
+    .panel-4 { transform: rotate(0.5deg); box-shadow: 6px 6px 0 var(--pf-ink), 12px 12px 0 var(--pf-mustard); }
+    .panel-5 { transform: rotate(-0.5deg); box-shadow: 8px 8px 0 var(--pf-ink), 16px 16px 0 var(--pf-orange-dark); background: #FFFDF5; }
+
+    .panel-badge-num {
+      position: absolute;
+      top: -16px;
+      left: 16px;
+      width: 44px;
+      height: 44px;
+      background: var(--pf-mustard);
+      color: var(--pf-ink);
+      border: var(--pf-border);
+      border-radius: 50%;
+      box-shadow: 3px 3px 0 var(--pf-ink);
+      font-family: var(--pf-font-display);
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .panel-content-grid {
+      display: grid;
+      grid-template-columns: 1fr 160px;
+      gap: 20px;
+      align-items: center;
+      margin-top: 6px;
+    }
+    @media (max-width: 640px) {
+      .panel-content-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+    }
+
+    .rule-tag {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--pf-orange-dark);
+    }
+
+    .rule-title {
+      font-family: var(--pf-font-display);
+      font-size: clamp(22px, 3.5vw, 30px);
+      letter-spacing: 0.04em;
+      color: var(--pf-ink);
+      margin: 2px 0 8px 0;
+      line-height: 1.15;
+    }
+
+    .rule-desc {
+      font-size: var(--pf-text-sm);
+      color: var(--pf-ink);
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    .rule-lore {
+      font-family: var(--pf-font-accent);
+      font-size: 13px;
+      color: var(--pf-orange);
+      margin-top: 10px;
+      display: inline-block;
+    }
+
+    .panel-art-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--pf-paper);
+      border: var(--pf-border);
+      border-radius: var(--pf-radius-md);
+      padding: 12px;
+      box-shadow: 3px 3px 0 var(--pf-ink);
+      min-height: 110px;
+    }
+
+    /* Arrow Connectors */
+    .comic-arrow {
+      display: flex;
+      justify-content: center;
+      margin: -14px 0;
+    }
+
+    /* CTA Box */
+    .rules-cta-box {
+      text-align: center;
+      margin: 20px 0 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .btn-play-arena {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--pf-orange);
+      color: var(--pf-paper-light);
+      font-family: var(--pf-font-display);
+      font-size: 24px;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      padding: 14px 36px;
+      border: var(--pf-border);
+      border-radius: var(--pf-radius-pill);
+      box-shadow: 4px 4px 0 var(--pf-ink), 8px 8px 0 var(--pf-orange-dark);
+      transition: transform var(--pf-duration-fast) var(--pf-ease-bounce),
+                  box-shadow var(--pf-duration-fast) ease;
+    }
+
+    .btn-play-arena:hover {
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: var(--pf-shadow-hover-lift);
+      background: var(--pf-orange-dark);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="rules-hero">
+    <div class="hero-badge">RULES</div>
+    <h1 class="hero-title">⚡ 5 GAME RULES ⚡</h1>
+    <p class="hero-sub">Simple rules for desk pen fight battles.</p>
+  </div>
+
+  <main class="comic-strip-container">
+
+    <!-- RULE 1 -->
+    <div class="comic-panel panel-1">
+      <div class="panel-badge-num">1</div>
+      <div class="panel-content-grid">
+        <div>
+          <span class="rule-tag">RULE #1</span>
+          <h2 class="rule-title">TABLE KNOCKOUT</h2>
+          <p class="rule-desc">
+            Pen falls off desk = Out.
+          </p>
+          <span class="rule-lore">"Keep your pen on the table."</span>
+        </div>
+        <div class="panel-art-box">
+          <svg width="130" height="90" viewBox="0 0 130 90">
+            <!-- Table Edge -->
+            <rect x="10" y="45" width="75" height="35" fill="#c49a6c" stroke="#1A1A1A" stroke-width="3"/>
+            <!-- Falling Pen -->
+            <g transform="translate(85, 30) rotate(55)">
+              <rect x="0" y="0" width="50" height="8" rx="2" fill="#FF6B35" stroke="#1A1A1A" stroke-width="2"/>
+              <polygon points="50,0 58,4 50,8" fill="#1A1A1A"/>
+            </g>
+            <text x="35" y="30" font-family="'Bangers'" font-size="18" fill="#C13B2E">FALL!</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="comic-arrow">
+      <svg width="30" height="40" viewBox="0 0 30 40" fill="none">
+        <path d="M15 5 Q 8 20 15 32 M 8 24 L 15 34 L 22 24" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <!-- RULE 2 -->
+    <div class="comic-panel panel-2">
+      <div class="panel-badge-num">2</div>
+      <div class="panel-content-grid">
+        <div>
+          <span class="rule-tag" style="color:var(--pf-teal-dark);">RULE #2</span>
+          <h2 class="rule-title">SINGLE FLICK</h2>
+          <p class="rule-desc">
+            One finger flick per turn. No pushing or dragging.
+          </p>
+          <span class="rule-lore" style="color:var(--pf-teal-dark);">"Aim for the center of mass."</span>
+        </div>
+        <div class="panel-art-box">
+          <svg width="130" height="90" viewBox="0 0 130 90">
+            <path d="M20 65 C 40 25 70 25 100 50" stroke="#1A1A1A" stroke-width="3" stroke-dasharray="4 4" fill="none"/>
+            <path d="M100 50 L 88 42 M 100 50 L 92 60" stroke="#2E8B8B" stroke-width="4" stroke-linecap="round"/>
+            <text x="38" y="28" font-family="'Bangers'" font-size="22" fill="#2E8B8B">SNAP!</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="comic-arrow">
+      <svg width="30" height="40" viewBox="0 0 30 40" fill="none">
+        <path d="M15 5 Q 22 20 15 32 M 8 24 L 15 34 L 22 24" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <!-- RULE 3 -->
+    <div class="comic-panel panel-3">
+      <div class="panel-badge-num" style="background:var(--pf-color-danger); color:#fff;">3</div>
+      <div class="panel-content-grid">
+        <div>
+          <span class="rule-tag" style="color:var(--pf-color-danger);">RULE #3</span>
+          <h2 class="rule-title">NO TABLE SHAKING</h2>
+          <p class="rule-desc">
+            Shaking or tilting the table is a foul.
+          </p>
+          <span class="rule-lore" style="color:var(--pf-color-danger);">"Keep the desk still."</span>
+        </div>
+        <div class="panel-art-box">
+          <div style="background:var(--pf-color-danger); color:#fff; font-family:var(--pf-font-display); font-size:22px; padding:10px 14px; border:2px solid var(--pf-ink); border-radius:8px; box-shadow:2px 2px 0 var(--pf-ink); transform:rotate(-4deg);">
+            FOUL! ⛔
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="comic-arrow">
+      <svg width="30" height="40" viewBox="0 0 30 40" fill="none">
+        <path d="M15 5 Q 8 20 15 32 M 8 24 L 15 34 L 22 24" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <!-- RULE 4 -->
+    <div class="comic-panel panel-4">
+      <div class="panel-badge-num">4</div>
+      <div class="panel-content-grid">
+        <div>
+          <span class="rule-tag" style="color:var(--pf-mustard-dark);">RULE #4</span>
+          <h2 class="rule-title">DEFENSE &amp; GRIP</h2>
+          <p class="rule-desc">
+            High friction pens stop closer to edges.
+          </p>
+          <span class="rule-lore" style="color:var(--pf-mustard-dark);">"Sideways pens resist incoming hits."</span>
+        </div>
+        <div class="panel-art-box">
+          <svg width="130" height="90" viewBox="0 0 130 90">
+            <!-- Triangular shield -->
+            <polygon points="65,15 105,75 25,75" fill="#E8B923" stroke="#1A1A1A" stroke-width="3"/>
+            <text x="48" y="58" font-family="'Bangers'" font-size="22" fill="#1A1A1A">GRIP</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="comic-arrow">
+      <svg width="30" height="40" viewBox="0 0 30 40" fill="none">
+        <path d="M15 5 Q 22 20 15 32 M 8 24 L 15 34 L 22 24" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <!-- RULE 5 -->
+    <div class="comic-panel panel-5">
+      <div class="panel-badge-num" style="background:var(--pf-orange); color:#fff;">5</div>
+      <div class="panel-content-grid">
+        <div>
+          <span class="rule-tag">RULE #5</span>
+          <h2 class="rule-title">WINNER TAKES MATCH</h2>
+          <p class="rule-desc">
+            Knock the opponent off the desk to win.
+          </p>
+          <span class="rule-lore">"Last pen standing wins."</span>
+        </div>
+        <div class="panel-art-box">
+          <div style="background:var(--pf-orange); color:#fff; font-family:var(--pf-font-display); font-size:20px; padding:10px 14px; border:2px solid var(--pf-ink); border-radius:8px; box-shadow:2px 2px 0 var(--pf-ink); text-align:center;">
+            👑 WINNER<br/>TAKES ALL
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLAY NOW CTA -->
+    <div class="rules-cta-box">
+      <a href="/index.html" class="btn-play-arena">
+        🕹️ PLAY NOW ❯
+      </a>
+    </div>
+
+  </main>
+
+</body>
+</html>
