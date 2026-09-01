@@ -1156,9 +1156,10 @@
 
     
     // Responsive Camera Framing for Mobile Portrait, Tablet, and Desktop
-    window.updateArenaCamera = function(numPlayers = null) {
-      if (!window.__pf || !window.__pf.camera) return;
-      const pf = window.__pf;
+    window.updateArenaCamera = function(numPlayers = null, targetCam = null) {
+      const pfCam = targetCam || (window.__pf && window.__pf.camera);
+      if (!pfCam) return;
+      const pf = window.__pf || {};
       const n = numPlayers || window.roomPlayerCount || window.matchPlayerCount || (pf.pens ? Object.keys(pf.pens).length : 2);
       const S = 1.0 + (Math.max(2, Math.min(8, n)) - 2) * 0.125;
       const w = window.innerWidth || 800;
@@ -1207,12 +1208,12 @@
         pf.baseCam.y = posY;
         pf.baseCam.z = posZ;
       }
-      pf.camera.position.set(posX, posY, posZ);
-      pf.camera.lookAt(0, 0, 0);
-      pf.camera.aspect = aspect;
-      pf.camera.fov = fov;
-      pf.camera.updateProjectionMatrix();
-      pf.camera.updateMatrixWorld(true);
+      pfCam.position.set(posX, posY, posZ);
+      pfCam.lookAt(0, 0, 0);
+      pfCam.aspect = aspect;
+      pfCam.fov = fov;
+      pfCam.updateProjectionMatrix();
+      pfCam.updateMatrixWorld(true);
     };
 
     window.addEventListener('resize', () => {
@@ -2697,6 +2698,7 @@
       }
       window.showMatchExitButton();
       window.updateLiveScoreboard();
+      if (window.updateArenaCamera) window.updateArenaCamera();
     };
 
     // Live Scoreboard Sync Logic
