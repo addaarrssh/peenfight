@@ -1,118 +1,78 @@
-<div align="center">
+# ⚡ Pen Fight 3D (पेन फाइट) 🖊️💥
 
-# ⚡ PEN FIGHT 3D (पेन फाइट) 🖊️💥
-### *The Iconic Indian Classroom Game Reimagined in Real-Time 3D*
+> *Remember the final school bell ringing, clearing the wooden desk with your elbow, and pulling out a Trimax or a Cello Gripper to settle who ruled the classroom?*
 
-[![Live Demo](https://img.shields.io/badge/🎮_Live_Game-Play_Now-FF6B35?style=for-the-badge&logo=vercel&logoColor=white)](https://peenfight.vercel.app)
-[![Three.js](https://img.shields.io/badge/Three.js-r128-black?style=for-the-badge&logo=three.js&logoColor=white)](https://threejs.org/)
-[![Rapier Physics](https://img.shields.io/badge/Rapier.js-WASM_Physics-E05D44?style=for-the-badge&logo=webassembly&logoColor=white)](https://rapier.rs/)
-[![WebRTC](https://img.shields.io/badge/WebRTC-P2P_Multiplayer-339933?style=for-the-badge&logo=webrtc&logoColor=white)](https://webrtc.org/)
-[![License](https://img.shields.io/badge/License-Proprietary_/_All_Rights_Reserved-blue?style=for-the-badge)](README.md)
+I built **Pen Fight 3D** to recreate that pure, chaotic Indian schoolyard nostalgia right inside the browser — in full 3D with real-time peer-to-peer multiplayer.
 
-<br />
-
-**[👉 Click Here to Play the Live Game](https://peenfight.vercel.app)**
-
-*Zero installations. Zero plugins. Instant browser play on Mobile & Desktop.*
+🎮 **Play the live game here:** [https://penfighting.vercel.app](https://penfighting.vercel.app)
 
 ---
 
-</div>
+## 🌟 Why I Built This
 
-## 📖 Overview
+Every Indian student who grew up in the 90s, 2000s, or 2010s has played Pen Fight on the last bench. Whether it was putting rubber bands on a Cello Gripper, loading lead inside a Reynolds Trimax to make it an immovable anchor, or skimming a lightweight Pilot V5 across the laminate — the game had its own unofficial physics, meta-strategies, and schoolyard legends.
 
-**Pen Fight 3D** brings the legendary Indian school desk sport to the modern web. From the ink-stained wooden benches of Class 9B to your browser screen, flick your favorite pen, exploit realistic 3D collision physics, and knock your rival off the desk!
-
-Built using **Three.js**, **Rapier.js (WebAssembly 3D Physics)**, and serverless **WebRTC Peer-to-Peer Data Channels**, this project delivers low-latency, deterministic multiplayer pen combat across mobile phones, tablets, and desktops.
-
----
-
-## ✨ Key Highlights & Features
-
-### 🕹️ Authentic 3D Physics Engine
-- **Rigid-Body Dynamics**: Implemented with **Rapier.js (WASM)** simulating true-to-life center of mass, angular velocity, and linear damping.
-- **Surface Friction & Incline**: Custom desk restitution and kinetic friction calibrated to replicate school desk laminate.
-- **Dynamic Flick Force Vectoring**: Touch-and-drag power gauge with angle trajectory calculation and visual cue pulses.
-
-### 🌐 Peer-to-Peer Real-Time Multiplayer
-- **Serverless WebRTC Netcode**: Direct peer-to-peer data channels with automated delivery queues, packet acknowledgments (ACKs), and sequence ordering.
-- **Authoritative Referee Loop**: 25 FPS serverless collision refereeing preventing out-of-bounds desyncs.
-- **Match Lobbies & WhatsApp Sharing**: Instant room code generator with 1-click WhatsApp and link sharing.
-- **Best-of-3 Tournament Mode**: Alternating turns, live comic scoreboard, and mutual rematch consensus voting.
-
-### 📱 Responsive Dynamic Viewport
-- **Aspect-Aware Camera Frustum**: Real-time vertical/horizontal FOV adaptation preventing table cutoff on vertical smartphone screens (iPhone, Samsung Galaxy, iPad, and Ultra-Wide displays).
-
-### 🎨 Comic-Zine Manga Art Direction
-- Chalkboard background, reactive collision impact pulses, comic badge typography, authentic pen clack sound effects, and persistent local storage for unlocked arsenal items.
+I wanted to see if I could capture that exact physical feeling in modern web tech:
+- The clack of hard plastic on a classroom desk.
+- The tension of a pen teetering on the cliff of the table edge.
+- Playing seamlessly with a friend over a quick WhatsApp room link with zero installs.
 
 ---
 
-## 🖊️ The 12 Iconic Pens & Physics Profiles
+## 🚀 How It Works (Under the Hood)
 
-Every pen features distinct physical attributes based on its real-world counterpart:
+Building realistic pen physics in the browser turned out to be a fascinating engineering challenge:
 
-| Pen Name | Striker Role | Weight / Density | Friction | Bounce | Special Trait |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Reynolds Trimax** | Heavy Anchor | 1480 kg/m³ | High (0.50) | 0.28 | Devastating knockout power, immovable center |
-| **Cello Gripper** | Precision Sweeper | 1409 kg/m³ | Max (0.55) | 0.30 | Rubberized body parks dead-center on impact |
-| **Pilot V5** | Dart Skimmer | 1128 kg/m³ | Low (0.22) | 0.44 | Ultra-fast velocity, maximum glide distance |
-| **Linc Ocean** | Balanced Duelist | 1250 kg/m³ | Med (0.35) | 0.35 | Aerodynamic cap with uniform rebound |
-| **Montex Megatop** | Spin Wobbler | 983 kg/m³ | Med (0.30) | 0.38 | Top-heavy cap creates spinning ricochet shots |
-| **Reynolds 045** | Classic All-Rounder| 1224 kg/m³ | Balanced (0.30)| 0.38 | Standard schoolyard benchmark pen |
-| **Parker Vector** | Steel Smasher | 1550 kg/m³ | High (0.42) | 0.25 | Heavy stainless-steel body, high kinetic momentum |
-| **Addgel Achiever** | Gel Slider | 1180 kg/m³ | Low (0.25) | 0.40 | High-speed straight line attacker |
-| **Cello Butterflow** | Smooth Glider | 1210 kg/m³ | Low (0.24) | 0.36 | Low surface resistance for long-range snipes |
-| **Flair Writometer** | Long Distance | 1310 kg/m³ | Med (0.32) | 0.32 | Heavy ink capacity provides steady linear push |
-| **Reynolds Racer Gel**| Quick Strike | 1140 kg/m³ | Med (0.28) | 0.42 | Agile recovery from desk edges |
-| **Classmate Octane** | Grip Finisher | 1270 kg/m³ | High (0.48) | 0.31 | Hexagonal body prevents rolling off edges |
+1. **Rigid-Body Physics (Rapier.js WASM)**:
+   Pens aren't simple cylinders or spheres — their center of mass is unevenly distributed (especially pens with heavy caps like Montex Megatop or metal clips like Parker). I used Rapier.js running in WebAssembly to simulate realistic friction, linear damping, restitution (bounce), and rotational torque.
+
+2. **3D WebGL Rendering (Three.js)**:
+   Custom 3D models and procedural chalkboard shaders with manga comic styling, ink halftone dots, and reactive camera shake pulses on heavy collisions.
+
+3. **Zero-Latency P2P Netcode (WebRTC & PeerJS)**:
+   Instead of routing every physics tick through an expensive game server, matches run peer-to-peer directly between two browsers using WebRTC data channels. To keep both screens 100% in sync without edge desyncs, the shooter streams live transforms at 30 FPS with deterministic settle confirmation.
+
+4. **Aspect-Aware Mobile Camera**:
+   Calculates real-time vertical FOV adjustments so mobile players on vertical iPhone and Android screens get the exact same visible desk area and flick sensitivity as desktop players.
 
 ---
 
-## 🛠️ Architecture & Tech Stack
+## 🖊️ The Striker Arsenal
 
-```
-[Touch / Mouse Drag Gesture]
-             │
-             ▼
-[Vector Calculation & Power Meter]
-             │
-      ┌──────┴────────────────────────┐
-      │                               │
-      ▼                               ▼
-[Rapier WASM Physics Step]    [WebRTC P2P Packet Sync]
-      │                               │
-      ▼                               ▼
-[Three.js 3D Viewport Render] [Host Referee Out-of-Bounds Detection]
-```
+I modeled 12 of the most iconic pens from our school days, each tuned with custom weight, grip, and bounce:
 
-- **Frontend Core**: Vanilla JavaScript (ES6+), HTML5 Canvas, WebGL.
-- **3D Graphics**: [Three.js](https://threejs.org/) (GLTF Loader, custom PBR shaders, procedural chalkboard backdrop, dynamic lighting).
-- **Physics Engine**: [Rapier.js](https://rapier.rs/) (WebAssembly rigid-body physics, convex hull colliders, continuous collision detection).
-- **Networking**: WebRTC P2P Data Channels with PeerJS signaling.
-- **Deployment**: [Vercel Edge Network](https://vercel.com).
+- **Reynolds Trimax** — The Heavy Tank. High density, hard to knock off, devastates lighter pens.
+- **Cello Gripper** — The Control Master. Rubber grip gives it maximum surface friction to park right where you aim.
+- **Pilot V5** — The Needle. Ultra-low friction and high glide speed for long-distance snipes.
+- **Linc Ocean** — The Balanced Duelist. Smooth, predictable rebound and great all-rounder.
+- **Montex Megatop** — The Spin King. Top-heavy cap creates crazy wobbles and unexpected ricochets.
+- **Reynolds 045** — The Legend. The classic transparent ballpoint every student started with.
+- *Plus Parker Vector, Cello Butterflow, Addgel, Flair Writometer, Reynolds Racer Gel, and Classmate Octane.*
 
 ---
 
-## 📜 How to Play
+## 🎮 Game Modes
 
-1. **Aim**: Click / tap on your pen and drag backward to aim your shot.
-2. **Power**: Pull further back to charge up your flick power.
-3. **Release**: Let go to strike the opponent's pen.
-4. **Win Condition**: Knock your opponent's pen completely off the desk while keeping your own pen safely on the wood. First to win 2 rounds takes the match!
+- **1P Solo Duel**: Quick offline duels against AI bot opponents with adjustable aggression and risk logic.
+- **2P Online Multiplayer**: Create a private room, share the link via WhatsApp or clipboard, pick your pen in an 8-second live draft, and battle in a Best-of-3 round match with mutual rematch voting.
 
 ---
 
-## 👨‍💻 Author & Creator
+## 🔒 Source Code & Project Status
+
+The complete game is deployed and actively maintained live at **[penfighting.vercel.app](https://penfighting.vercel.app)**.
+
+To protect the custom physics engine tuning, shader assets, and netcode from direct duplication, the production implementation is maintained in a private build repository, while this repository serves as the public architecture showcase and documentation hub.
+
+Feel free to open an issue or connect on LinkedIn if you have feedback, want to discuss the WebRTC/Three.js architecture, or just want to challenge me to a match!
+
+---
+
+## 👨‍💻 Built By
 
 **Adarsh Sahu**
-- **Live Game**: [peenfight.vercel.app](https://peenfight.vercel.app)
-- **GitHub**: [@addaarrssh](https://github.com/addaarrssh)
+- 🌐 **Live Game**: [https://penfighting.vercel.app](https://penfighting.vercel.app)
+- 💼 **LinkedIn**: [Adarsh Sahu](https://linkedin.com/in/addaarrssh)
+- 🐙 **GitHub**: [@addaarrssh](https://github.com/addaarrssh)
 
----
-
-## 🔒 Source Code & License Notice
-
-This repository serves as the public architecture, showcase, and technical documentation for **Pen Fight 3D**. The proprietary physics calibration, custom shader pipeline, and netcode implementation are maintained in a protected production build.
-
-*Copyright © 2026 Adarsh Sahu. All rights reserved.*
+*If this brought back school memories, share the match link with your old classmates and see who still has the best flick!* 🚀
