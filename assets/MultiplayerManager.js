@@ -2,14 +2,14 @@
  * MultiplayerManager.js - Robust Zero-Latency WebRTC Multiplayer Engine
  * 
  * Features:
- * 1. PeerJS WebRTC DataChannel (Direct Browser-to-Browser, 0ms server bottleneck)
- * 2. Real-Time High-Frequency Physics Streaming (LIVE_TRANSFORMS for 100% lockstep motion)
- * 3. Sequence Acknowledgment Queue (DeliveryQueue with exponential retry & deduplication)
- * 4. Authoritative Host Refereeing & Cross-Device PEN_FALLEN Reporting
- * 5. Heartbeat & Keepalive Protocol (Maintains mobile carrier NAT tables)
- * 6. Mobile & PWA Resilience (Handles suspension, pagehide, and auto-reconnection)
- * 7. TURN Server Fallback (Ensures connectivity on restrictive NATs & firewalls)
- * 8. 3.5s Anti-Freeze Watchdog (Guarantees turns and rounds never lock up)
+ * 1. Star-Topology Multi-Peer WebRTC DataChannels (Host Star Relay for 2 to 8 players)
+ * 2. Ultra-Low Bandwidth Usage (Optimized for Mobile/Cellular Networks)
+ * 3. Dynamic Slot & Pen Assignment (0: Host/player, 1: Guest1/rival, 2: Guest2/bot3, ..., 7: Guest7/bot8)
+ * 4. High-Frequency Live Transform Streaming (LIVE_TRANSFORMS)
+ * 5. Sequence Acknowledgment Delivery Queue (Exponential Retry & Deduplication)
+ * 6. Authoritative Host Refereeing & Progressive Elimination (Battle Royale)
+ * 7. Heartbeat & Keepalive Protocol with Anti-Freeze Turn Watchdog
+ * 8. TURN Server Fallback for Restrictive NATs
  */
 
 (function(global) {
@@ -22,6 +22,8 @@
     RECONNECTING: 'RECONNECTING',
     ERROR: 'ERROR'
   };
+
+  const ROSTER_IDS = ["player", "rival", "bot3", "bot4", "bot5", "bot6", "bot7", "bot8"];
 
   // STUN + free public TURN servers for restrictive network fallback
   const ICE_SERVERS = [
@@ -56,17 +58,22 @@
     constructor() {
       this.state = STATES.DISCONNECTED;
       this.peer = null;
-      this.conn = null;
+      this.conn = null; // For guest: connection to host. For host: primary connection alias
+      this.conns = new Map(); // For host: Map<peerId, { conn, slot, penId, name, pen }>
       this.isHost = false;
+      this.mySlot = 0; // 0 for host, 1..7 for guests
+      this.myPenId = "player"; // "player", "rival", "bot3", ...
+      this.rosterIds = ROSTER_IDS.slice();
       this.roomCode = null;
       this.peerId = null;
       this.localName = "Player";
       this.localPen = "gripper";
       this.remoteName = "Opponent";
       this.remotePen = "pilotV5";
-      this.currentStriker = "player"; // "player" (Host) or "rival" (Guest)
+      this.currentStriker = "player";
       this.bout = 1;
       this.seq = 0;
+      this.players = []; // [{ slot, penId, name, pen, isHost, peerId }]
 
       // Delivery Queue for guaranteed delivery
       this.pendingAcks = new Map();
@@ -93,6 +100,8 @@
       this.callbacks = {
         stateChange: [],
         playerJoined: [],
+        playerLeft: [],
+        lobbyUpdate: [],
         penUpdated: [],
         matchStarted: [],
         opponentShot: [],
@@ -108,6 +117,10 @@
       };
 
       this.setupVisibilityListeners();
+    }
+
+    getMyPenId() {
+      return this.myPenId || (this.isHost ? "player" : "rival");
     }
 
     setState(newState) {
@@ -166,12 +179,22 @@
 
     createRoom(roomCode, playerName, selectedPen) {
       this.isHost = true;
+      this.mySlot = 0;
+      this.myPenId = "player";
       this.roomCode = roomCode;
       this.localName = playerName || (typeof localStorage !== 'undefined' ? localStorage.getItem("pf_name") : null) || "YOU";
       this.localPen = selectedPen || "gripper";
       this.currentStriker = "player";
       this.wasOpen = false;
       this.reconnectAttempts = 0;
+      this.conns.clear();
+      this.players = [{
+        slot: 0,
+        penId: "player",
+        name: this.localName,
+        pen: this.localPen,
+        isHost: true
+      }];
 
       this.setState(STATES.CONNECTING);
       this.startConnectionTimeout();
@@ -180,11 +203,92 @@
       const hostPeerId = `pf-desk-${cleanCode}-host`;
 
       this.initPeer(hostPeerId, () => {
+        this.clearConnectionTimeout();
+        this.setState(STATES.OPEN);
         this.peer.on('connection', (conn) => {
-          console.log("[PF_MULTIPLAYER] Guest connected to Host DataChannel");
-          this.conn = conn;
-          this.setupDataChannel();
+          this.handleIncomingGuest(conn);
         });
+      });
+    }
+
+    handleIncomingGuest(conn) {
+      console.log(`[PF_MULTIPLAYER] Incoming guest connection from: ${conn.peer}`);
+
+      // Determine available slot (1 to 7)
+      const usedSlots = new Set(this.players.map(p => p.slot));
+      let assignedSlot = -1;
+      const maxSlots = Math.max(2, Math.min(8, window.roomPlayerCount || 8));
+      for (let s = 1; s < maxSlots; s++) {
+        if (!usedSlots.has(s)) {
+          assignedSlot = s;
+          break;
+        }
+      }
+
+      if (assignedSlot === -1) {
+        console.warn(`[PF_MULTIPLAYER] Room is full (max ${maxSlots} players). Refusing: ${conn.peer}`);
+        conn.on('open', () => {
+          conn.send({ type: 'ROOM_FULL', max: maxSlots });
+          setTimeout(() => conn.close(), 500);
+        });
+        return;
+      }
+
+      const assignedPenId = this.rosterIds[assignedSlot] || `bot${assignedSlot + 1}`;
+      const guestInfo = {
+        conn: conn,
+        slot: assignedSlot,
+        penId: assignedPenId,
+        name: `Player ${assignedSlot + 1}`,
+        pen: (window.currentChosenPens && window.currentChosenPens[assignedSlot]) || "pilotV5",
+        isHost: false,
+        peerId: conn.peer
+      };
+
+      this.conns.set(conn.peer, guestInfo);
+      if (!this.conn) this.conn = conn;
+
+      conn.on('open', () => {
+        console.log(`[PF_MULTIPLAYER] Guest connected on DataChannel. Assigned slot: ${assignedSlot}`);
+        this.wasOpen = true;
+
+        conn.send({
+          type: 'WELCOME',
+          slot: assignedSlot,
+          myPenId: assignedPenId,
+          roomPlayerCount: window.roomPlayerCount || 2,
+          currentChosenPens: window.currentChosenPens || [],
+          players: this.players
+        });
+
+        this.startHeartbeat();
+      });
+
+      conn.on('data', (data) => {
+        this.handlePacket(data, conn);
+      });
+
+      conn.on('close', () => {
+        console.log(`[PF_MULTIPLAYER] Guest ${conn.peer} disconnected`);
+        const info = this.conns.get(conn.peer);
+        this.conns.delete(conn.peer);
+        if (this.conn === conn) {
+          const firstLeft = this.conns.values().next().value;
+          this.conn = firstLeft ? firstLeft.conn : null;
+        }
+
+        if (info) {
+          this.players = this.players.filter(p => p.slot !== info.slot);
+          this.emit('playerLeft', { slot: info.slot, name: info.name });
+          this.broadcastToAll({
+            type: 'LOBBY_UPDATE',
+            players: this.players
+          });
+        }
+      });
+
+      conn.on('error', (err) => {
+        console.warn(`[PF_MULTIPLAYER] DataChannel error with ${conn.peer}:`, err);
       });
     }
 
@@ -194,6 +298,8 @@
       this.localName = playerName || (typeof localStorage !== 'undefined' ? localStorage.getItem("pf_name") : null) || "YOU";
       this.localPen = selectedPen || "pilotV5";
       this.currentStriker = "player";
+      this.mySlot = 1;
+      this.myPenId = "rival";
       this.guestRetryCount = 0;
       this.wasOpen = false;
       this.reconnectAttempts = 0;
@@ -218,7 +324,7 @@
         serialization: 'json'
       });
       this.conn = conn;
-      this.setupDataChannel();
+      this.setupGuestDataChannel();
     }
 
     initPeer(peerId, onOpenCallback) {
@@ -294,7 +400,7 @@
       }
     }
 
-    setupDataChannel() {
+    setupGuestDataChannel() {
       if (!this.conn) return;
 
       this.conn.on('open', () => {
@@ -304,25 +410,18 @@
         this.reconnectAttempts = 0;
         this.setState(STATES.OPEN);
 
-        // Handshake packet exchange
         this.sendReliable({
           type: 'HANDSHAKE',
           name: this.localName,
           pen: this.localPen,
-          isHost: this.isHost
+          isHost: false
         });
 
         this.startHeartbeat();
-
-        setTimeout(() => {
-          if (this.isHost) {
-            this.syncScoreboard();
-          }
-        }, 600);
       });
 
       this.conn.on('data', (data) => {
-        this.handlePacket(data);
+        this.handlePacket(data, this.conn);
       });
 
       this.conn.on('close', () => {
@@ -335,7 +434,7 @@
           this.setState(STATES.DISCONNECTED);
           this.emit('disconnected', {
             reason: 'peer-closed',
-            message: 'Opponent disconnected from the match.'
+            message: 'Connection to Host closed.'
           });
         }
       });
@@ -376,6 +475,19 @@
       }
     }
 
+    broadcastToAll(packet, excludePeerId = null) {
+      for (const [peerId, info] of this.conns) {
+        if (excludePeerId && peerId === excludePeerId) continue;
+        if (info.conn && info.conn.open) {
+          try {
+            info.conn.send(packet);
+          } catch(e) {
+            console.warn(`[PF_MULTIPLAYER] Broadcast error to ${peerId}:`, e);
+          }
+        }
+      }
+    }
+
     sendReliable(packet) {
       this.seq++;
       const reliablePacket = {
@@ -387,7 +499,7 @@
 
       this.sendDirect(reliablePacket);
 
-      if (['HANDSHAKE', 'TURN', 'PEN_UPDATE', 'START_MATCH', 'LAUNCH_MATCH', 'SETTLE_SYNC', 'PEN_FALLEN', 'SCORE_UPDATE', 'ROUND_RESULT', 'NEW_ROUND', 'REMATCH_VOTE'].includes(reliablePacket.type)) {
+      if (['HANDSHAKE', 'WELCOME', 'LOBBY_UPDATE', 'TURN', 'PEN_UPDATE', 'START_MATCH', 'LAUNCH_MATCH', 'SETTLE_SYNC', 'PEN_FALLEN', 'SCORE_UPDATE', 'ROUND_RESULT', 'NEW_ROUND', 'REMATCH_VOTE'].includes(reliablePacket.type)) {
         this.registerAckTimeout(reliablePacket, 0);
       }
 
@@ -395,11 +507,15 @@
     }
 
     sendDirect(packet) {
-      if (this.conn && this.conn.open) {
-        try {
-          this.conn.send(packet);
-        } catch(e) {
-          console.warn("[PF_MULTIPLAYER] Direct send failure:", e);
+      if (this.isHost) {
+        this.broadcastToAll(packet);
+      } else {
+        if (this.conn && this.conn.open) {
+          try {
+            this.conn.send(packet);
+          } catch(e) {
+            console.warn("[PF_MULTIPLAYER] Direct send to host failed:", e);
+          }
         }
       }
     }
@@ -429,14 +545,15 @@
       }
     }
 
-    handlePacket(packet) {
+    handlePacket(packet, fromConn) {
       if (!packet || !packet.type) return;
 
-      // Handle ACK confirmation
       if (packet.seq) {
-        this.sendDirect({ type: 'ACK', ackSeq: packet.seq });
+        if (fromConn && fromConn.open) {
+          try { fromConn.send({ type: 'ACK', ackSeq: packet.seq }); } catch(e) {}
+        }
         if (this.seenSeqs.has(packet.seq)) {
-          return; // Skip duplicate execution
+          return;
         }
         this.seenSeqs.add(packet.seq);
         if (this.seenSeqs.size > 200) {
@@ -452,36 +569,108 @@
 
         case 'HEARTBEAT':
           this.lastHeartbeatReceived = Date.now();
-          this.sendDirect({ type: 'HEARTBEAT_ACK' });
+          if (fromConn && fromConn.open) {
+            try { fromConn.send({ type: 'HEARTBEAT_ACK' }); } catch(e) {}
+          }
           break;
 
         case 'HEARTBEAT_ACK':
           this.lastHeartbeatReceived = Date.now();
           break;
 
+        case 'WELCOME':
+          this.mySlot = packet.slot;
+          this.myPenId = packet.myPenId || this.rosterIds[packet.slot] || "rival";
+          if (packet.roomPlayerCount) {
+            window.roomPlayerCount = packet.roomPlayerCount;
+          }
+          if (packet.currentChosenPens && Array.isArray(packet.currentChosenPens)) {
+            window.currentChosenPens = packet.currentChosenPens;
+          }
+          this.players = packet.players || [];
+          console.log(`[PF_MULTIPLAYER] Welcomed by Host! My slot: ${this.mySlot}, pen: ${this.myPenId}`);
+          this.emit('lobbyUpdate', { players: this.players, mySlot: this.mySlot });
+          break;
+
         case 'HANDSHAKE':
-          this.remoteName = packet.name || "Opponent";
-          this.remotePen = packet.pen || "pilotV5";
-          this.emit('playerJoined', {
-            remoteName: this.remoteName,
-            remotePen: this.remotePen,
-            isHost: this.isHost
-          });
+          if (this.isHost && fromConn) {
+            const guestInfo = this.conns.get(fromConn.peer);
+            if (guestInfo) {
+              guestInfo.name = packet.name || guestInfo.name;
+              guestInfo.pen = packet.pen || guestInfo.pen;
+
+              const existingIdx = this.players.findIndex(p => p.slot === guestInfo.slot);
+              const pData = {
+                slot: guestInfo.slot,
+                penId: guestInfo.penId,
+                name: guestInfo.name,
+                pen: guestInfo.pen,
+                isHost: false,
+                peerId: fromConn.peer
+              };
+              if (existingIdx >= 0) this.players[existingIdx] = pData;
+              else this.players.push(pData);
+
+              this.players.sort((a, b) => a.slot - b.slot);
+
+              if (guestInfo.slot === 1) {
+                this.remoteName = guestInfo.name;
+                this.remotePen = guestInfo.pen;
+              }
+
+              this.emit('playerJoined', {
+                slot: guestInfo.slot,
+                penId: guestInfo.penId,
+                remoteName: guestInfo.name,
+                remotePen: guestInfo.pen,
+                isHost: false,
+                players: this.players
+              });
+
+              this.broadcastToAll({
+                type: 'LOBBY_UPDATE',
+                players: this.players
+              });
+            }
+          }
+          break;
+
+        case 'LOBBY_UPDATE':
+          this.players = packet.players || [];
+          if (this.players.length > 0 && !this.isHost) {
+            const hostP = this.players.find(p => p.isHost);
+            if (hostP) {
+              this.remoteName = hostP.name;
+              this.remotePen = hostP.pen;
+            }
+          }
+          this.emit('lobbyUpdate', { players: this.players, mySlot: this.mySlot });
           break;
 
         case 'PEN_UPDATE':
-          this.emit('penUpdated', {
-            slot: packet.slot,
-            penId: packet.penId,
-            remoteName: packet.name
-          });
+          if (typeof packet.slot === 'number') {
+            const p = this.players.find(x => x.slot === packet.slot);
+            if (p) p.pen = packet.penId;
+            if (packet.slot === 1) this.remotePen = packet.penId;
+
+            if (this.isHost && fromConn) {
+              this.broadcastToAll(packet, fromConn.peer);
+            }
+
+            this.emit('penUpdated', {
+              slot: packet.slot,
+              penId: packet.penId,
+              remoteName: packet.name
+            });
+          }
           break;
 
         case 'START_MATCH':
           this.currentStriker = "player";
           this.emit('matchTimerStarted', {
             pens: packet.pens,
-            names: packet.names
+            names: packet.names,
+            playerCount: packet.playerCount
           });
           break;
 
@@ -489,13 +678,17 @@
           this.currentStriker = "player";
           this.emit('matchStarted', {
             pens: packet.pens,
-            names: packet.names
+            names: packet.names,
+            playerCount: packet.playerCount
           });
           break;
 
         case 'TURN':
-          // Remote flick impulse executed deterministically
-          this.currentStriker = (packet.striker === "player") ? "rival" : "player";
+          if (this.isHost && fromConn) {
+            this.broadcastToAll(packet, fromConn.peer);
+          }
+
+          this.currentStriker = packet.nextStriker || packet.striker;
           this.emit('opponentShot', {
             striker: packet.striker,
             shot: packet.shot,
@@ -504,12 +697,20 @@
           break;
 
         case 'LIVE_TRANSFORMS':
+          if (this.isHost && fromConn) {
+            this.broadcastToAll(packet, fromConn.peer);
+          }
+
           this.emit('liveTransforms', {
             pens: packet.pens
           });
           break;
 
         case 'SETTLE_SYNC':
+          if (this.isHost && fromConn) {
+            this.broadcastToAll(packet, fromConn.peer);
+          }
+
           if (packet.striker) {
             this.currentStriker = packet.striker;
           }
@@ -521,6 +722,7 @@
 
         case 'PEN_FALLEN':
           this.emit('penFallen', {
+            penId: packet.penId,
             pOut: packet.pOut,
             rOut: packet.rOut,
             pens: packet.pens
@@ -529,6 +731,7 @@
 
         case 'SCORE_UPDATE':
           this.emit('scoreUpdate', {
+            scores: packet.scores,
             you: packet.you,
             rival: packet.rival,
             log: packet.log
@@ -562,9 +765,13 @@
           break;
 
         case 'REMATCH_VOTE':
+          if (this.isHost && fromConn) {
+            this.broadcastToAll(packet, fromConn.peer);
+          }
           this.emit('rematchVote', {
             vote: packet.vote,
-            from: packet.from
+            from: packet.from,
+            slot: packet.slot
           });
           break;
       }
@@ -591,24 +798,29 @@
     }
 
     setupVisibilityListeners() {
-      document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') {
-          console.log("[PF_MULTIPLAYER] Page foregrounded, checking connection health...");
-          if (this.state === STATES.OPEN) {
-            this.sendDirect({ type: 'HEARTBEAT', time: Date.now() });
+      if (typeof document !== 'undefined') {
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') {
+            console.log("[PF_MULTIPLAYER] Page foregrounded, checking connection health...");
+            if (this.state === STATES.OPEN) {
+              this.sendDirect({ type: 'HEARTBEAT', time: Date.now() });
+            }
           }
-        }
-      });
+        });
+      }
     }
 
-    sendShot(striker, shotAction, penTransform) {
-      this.currentStriker = (striker === "player") ? "rival" : "player";
+    sendShot(striker, shotAction, penTransform, nextStriker = null) {
+      if (nextStriker) {
+        this.currentStriker = nextStriker;
+      }
 
       return this.sendReliable({
         type: 'TURN',
         striker: striker,
         shot: shotAction,
-        transform: penTransform
+        transform: penTransform,
+        nextStriker: nextStriker
       });
     }
 
@@ -627,9 +839,10 @@
       });
     }
 
-    sendPenFallen(pOut, rOut, pensCoordMap) {
+    sendPenFallen(pOut, rOut, pensCoordMap, penId = null) {
       return this.sendReliable({
         type: 'PEN_FALLEN',
+        penId: penId,
         pOut: pOut,
         rOut: rOut,
         pens: pensCoordMap
@@ -647,29 +860,27 @@
       });
     }
 
-    sendScoreUpdate(you, rival, log) {
+    sendScoreUpdate(scores, you, rival, log) {
       return this.sendReliable({
         type: 'SCORE_UPDATE',
+        scores: scores,
         you: you,
         rival: rival,
         log: log
       });
     }
 
-    sendRematchVote(vote, from) {
+    sendRematchVote(vote, from, slot = 0) {
       return this.sendReliable({
         type: 'REMATCH_VOTE',
         vote: vote,
-        from: from
+        from: from,
+        slot: slot
       });
     }
 
     isMyTurn() {
-      if (this.isHost) {
-        return this.currentStriker === "player";
-      } else {
-        return this.currentStriker === "rival";
-      }
+      return this.currentStriker === this.getMyPenId();
     }
 
     disconnect() {
@@ -682,6 +893,11 @@
         clearTimeout(item.timeoutId);
       }
       this.pendingAcks.clear();
+
+      for (const [, info] of this.conns) {
+        try { info.conn.close(); } catch(e) {}
+      }
+      this.conns.clear();
 
       if (this.conn) {
         try { this.conn.close(); } catch(e) {}

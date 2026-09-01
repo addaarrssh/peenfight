@@ -173,6 +173,26 @@
   letter-spacing: 0.05em;
 }
 
+/* Multi-Player Battle Royale Scoreboard (3 to 8 Players) */
+.multi-score-chip {
+  transition: transform 0.15s ease, opacity 0.2s ease, border-color 0.2s ease;
+  user-select: none;
+}
+
+.multi-score-chip.is-turn {
+  transform: scale(1.08);
+  animation: pulseTurn 1s infinite alternate;
+}
+
+.multi-score-chip.is-out {
+  filter: grayscale(0.85);
+}
+
+@keyframes pulseTurn {
+  from { box-shadow: 1.5px 1.5px 0 var(--pf-ink); }
+  to { box-shadow: 2.5px 2.5px 0 var(--pf-orange), 0 0 8px rgba(255, 107, 53, 0.4); }
+}
+
 @media (max-width: 600px) {
   .pf-scoreboard {
     top: 64px;

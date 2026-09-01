@@ -904,6 +904,8 @@
 
     window.showMatchExitButton = function() {
       window.isMatchActive = true;
+      const actions = document.getElementById("pf-arena-quick-actions");
+      if (actions) actions.style.display = "none";
       const btn = document.getElementById("pf-btn-exit-match");
       if (btn) {
         btn.style.display = "inline-flex";
@@ -918,6 +920,8 @@
 
     window.hideMatchExitButton = function() {
       window.isMatchActive = false;
+      const actions = document.getElementById("pf-arena-quick-actions");
+      if (actions) actions.style.display = "flex";
       const btn = document.getElementById("pf-btn-exit-match");
       if (btn) {
         btn.style.display = "none";
@@ -1116,6 +1120,108 @@
       window.PF_NET.updateTurnCue();
     };
 
+    
+    // Helper to calculate circular spawn coordinates for N players
+    window.calculatePenSpawn = function(slotIndex, numPlayers, S) {
+      const W = 0.46 * S;
+      const D = 0.70 * S;
+      const angle = (2 * Math.PI * slotIndex) / numPlayers - Math.PI / 2;
+      const spawnX = ((W / 2) - 0.08) * Math.cos(angle);
+      const spawnZ = ((D / 2) - 0.08) * Math.sin(angle);
+      const yaw = -angle - Math.PI / 2;
+      return { x: spawnX, z: spawnZ, yaw: yaw };
+    };
+
+    // Helper to get display name for any pen ID (player, rival, bot3..bot8)
+    window.getPenDisplayName = function(penId) {
+      const mp = window.PF_MULTIPLAYER;
+      const ROSTER_KEYS = ["player", "rival", "bot3", "bot4", "bot5", "bot6", "bot7", "bot8"];
+      const slot = ROSTER_KEYS.indexOf(penId);
+      if (mp && mp.state === 'OPEN' && mp.players && slot >= 0) {
+        const p = mp.players.find(x => x.slot === slot);
+        if (p && p.name) return p.name.toUpperCase();
+      }
+      const defaultNames = {
+        player: (localStorage.getItem("pf_name") || "YOU").toUpperCase(),
+        rival: (mp?.remoteName || "BUNTY").toUpperCase(),
+        bot3: "ARJUN",
+        bot4: "MEERA",
+        bot5: "DEV",
+        bot6: "ROHAN",
+        bot7: "SIMRAN",
+        bot8: "KABIR"
+      };
+      return defaultNames[penId] || penId.toUpperCase();
+    };
+
+    
+    // Responsive Camera Framing for Mobile Portrait, Tablet, and Desktop
+    window.updateArenaCamera = function(numPlayers = null) {
+      if (!window.__pf || !window.__pf.camera) return;
+      const pf = window.__pf;
+      const n = numPlayers || window.roomPlayerCount || window.matchPlayerCount || (pf.pens ? Object.keys(pf.pens).length : 2);
+      const S = 1.0 + (Math.max(2, Math.min(8, n)) - 2) * 0.125;
+      const w = window.innerWidth || 800;
+      const h = window.innerHeight || 600;
+      const aspect = w / h;
+
+      let posX, posY, posZ, fov;
+
+      if (aspect < 0.85) {
+        // Mobile Portrait mode (phone screen, aspect 0.42 to 0.85)
+        // Scale distance closer so table fills ~92-95% of screen width cleanly
+        const distScale = 0.72 + Math.max(0, 0.85 - aspect) * 0.08;
+        posX = -0.65 * S * distScale;
+        posY = 0.84 * S * distScale;
+        posZ = 0;
+
+        const D_cam = Math.hypot(posX, posY);
+        const targetVisWidth = (0.70 * S) * 1.08;
+        const tanHalfH = targetVisWidth / (2 * D_cam);
+        const tanHalfV = tanHalfH / aspect;
+        fov = Math.min(78, Math.max(52, 2 * Math.atan(tanHalfV) * (180 / Math.PI)));
+
+      } else if (aspect < 1.15) {
+        // Square / Tablet mode (aspect 0.85 to 1.15)
+        const distScale = 0.84;
+        posX = -0.65 * S * distScale;
+        posY = 0.84 * S * distScale;
+        posZ = 0;
+
+        const D_cam = Math.hypot(posX, posY);
+        const targetVisWidth = (0.70 * S) * 1.15;
+        const tanHalfH = targetVisWidth / (2 * D_cam);
+        const tanHalfV = tanHalfH / aspect;
+        fov = Math.min(68, Math.max(50, 2 * Math.atan(tanHalfV) * (180 / Math.PI)));
+
+      } else {
+        // Desktop Landscape mode (aspect >= 1.15)
+        posX = -0.65 * S;
+        posY = 0.84 * S;
+        posZ = 0;
+        fov = 52;
+      }
+
+      if (pf.baseCam) {
+        pf.baseCam.x = posX;
+        pf.baseCam.y = posY;
+        pf.baseCam.z = posZ;
+      }
+      pf.camera.position.set(posX, posY, posZ);
+      pf.camera.lookAt(0, 0, 0);
+      pf.camera.aspect = aspect;
+      pf.camera.fov = fov;
+      pf.camera.updateProjectionMatrix();
+      pf.camera.updateMatrixWorld(true);
+    };
+
+    window.addEventListener('resize', () => {
+      if (window.updateArenaCamera) window.updateArenaCamera();
+    });
+    window.addEventListener('orientationchange', () => {
+      setTimeout(() => { if (window.updateArenaCamera) window.updateArenaCamera(); }, 150);
+    });
+
     window.setArenaPlayers = function(numPlayers, customPens = null) {
       numPlayers = Math.max(2, Math.min(8, parseInt(numPlayers) || 2));
       if (!window.__pf) return;
@@ -1135,17 +1241,8 @@
         pf.tableCollider.setHalfExtents({ x: W / 2, y: 0.03 / 2, z: D / 2 });
       }
 
-      if (pf.camera && pf.baseCam) {
-        pf.baseCam.x = -0.65 * S;
-        pf.baseCam.y = 0.84 * S;
-        pf.baseCam.z = 0;
-        pf.camera.position.set(pf.baseCam.x, pf.baseCam.y, pf.baseCam.z);
-        pf.camera.lookAt(0, 0, 0);
-        const aspect = (window.innerWidth || 800) / (window.innerHeight || 600);
-        pf.camera.aspect = aspect;
-        pf.camera.fov = aspect < 1.05 ? Math.min(100, Math.max(52, 2 * Math.atan(0.5121 / aspect) * (180 / Math.PI))) : 52;
-        pf.camera.updateProjectionMatrix();
-        pf.camera.updateMatrixWorld(true);
+      if (window.updateArenaCamera) {
+        window.updateArenaCamera(numPlayers);
       }
 
       const QA = pf.physWorld;
@@ -1586,6 +1683,12 @@
       get isHost() {
         return window.PF_MULTIPLAYER ? window.PF_MULTIPLAYER.isHost : false;
       },
+      get mySlot() {
+        return window.PF_MULTIPLAYER ? window.PF_MULTIPLAYER.mySlot : 0;
+      },
+      get myPenId() {
+        return window.PF_MULTIPLAYER ? window.PF_MULTIPLAYER.getMyPenId() : "player";
+      },
       get currentStriker() {
         return window.PF_MULTIPLAYER ? window.PF_MULTIPLAYER.currentStriker : "player";
       },
@@ -1618,7 +1721,8 @@
         if (!window.currentChosenPens || !Array.isArray(window.currentChosenPens)) {
           window.currentChosenPens = ["gripper", myPen, "reynolds-trimax", "reynolds045", "parker", "megatop", "addgel", "classmate-octane"];
         }
-        window.currentChosenPens[1] = myPen;
+        const mySlot = window.PF_MULTIPLAYER ? window.PF_MULTIPLAYER.mySlot : 1;
+        window.currentChosenPens[mySlot] = myPen;
         currentChosenPens = window.currentChosenPens;
         if (window.PF_MULTIPLAYER) {
           window.PF_MULTIPLAYER.joinRoom(roomCode, myName, myPen);
@@ -1639,10 +1743,10 @@
         const mp = window.PF_MULTIPLAYER;
         if (!mp || mp.state !== 'OPEN') return;
         const isMyTurn = mp.isMyTurn();
-        const opponentName = mp.remoteName || "FRIEND";
-        const cueText = isMyTurn ? "👉 YOUR TURN TO FLICK!" : `⏳ ${opponentName.toUpperCase()}'S TURN...`;
+        const strikerPenId = mp.currentStriker || "player";
+        const strikerName = window.getPenDisplayName ? window.getPenDisplayName(strikerPenId) : (isMyTurn ? "YOU" : "OPPONENT");
+        const cueText = isMyTurn ? "👉 YOUR TURN TO FLICK!" : `⏳ ${strikerName.toUpperCase()}'S TURN...`;
         const cueIcon = isMyTurn ? "👉" : "⏳";
-        console.log(`[PF_NET] Turn: ${mp.currentStriker}, isMyTurn=${isMyTurn}`);
         if (window.__pf && window.__pf.controller && window.__pf.controller.hud) {
           window.__pf.controller.hud.showCue(cueText, cueIcon);
         }
@@ -1651,11 +1755,7 @@
       updateLobbyUI: function(statusText) {
         const pill = document.querySelector(".connected-pill");
         if (pill) pill.textContent = statusText;
-
-        const slot2Name = document.getElementById("slot-player-2-name");
-        if (slot2Name && this.peerName) {
-          slot2Name.textContent = this.peerName;
-        }
+        if (window.renderLobbySlotRows) window.renderLobbySlotRows();
       }
     };
 
@@ -1663,42 +1763,56 @@
     // MULTIPLAYER MATCH REFEREE & ROUND SYNCHRONIZATION
     // =========================================================================
     window.PF_MULTIPLAYER_MATCH = {
-      scores: { player: 0, rival: 0 },
+      scores: {},
       round: 1,
-      targetWins: 2, // Best of 3: first to 2 wins wins the match
+      targetWins: 2,
       isRoundEnding: false,
       settleCooldownUntil: 0,
+      outs: new Set(),
 
       reset: function() {
-        this.scores = { player: 0, rival: 0 };
+        this.scores = {};
+        const count = window.roomPlayerCount || window.matchPlayerCount || 2;
+        const ROSTER_KEYS = ["player", "rival", "bot3", "bot4", "bot5", "bot6", "bot7", "bot8"];
+        for (let i = 0; i < count; i++) {
+          this.scores[ROSTER_KEYS[i]] = 0;
+        }
         this.round = 1;
         this.isRoundEnding = false;
         this.settleCooldownUntil = 0;
+        this.outs.clear();
         window.updateLiveScoreboard();
       },
 
       checkOuts: function(forcedPOut = null, forcedROut = null) {
         if (!window.PF_MULTIPLAYER || window.PF_MULTIPLAYER.state !== 'OPEN') return;
+        if (!window.__pf || !window.__pf.pens) return;
+        const pf = window.__pf;
+        const allPens = Object.keys(pf.pens);
+        if (allPens.length === 0) return;
+
+        const numPlayers = Math.max(2, Math.min(8, window.roomPlayerCount || window.matchPlayerCount || allPens.length));
+        const S = 1.0 + (numPlayers - 2) * 0.125;
+        const maxW = (0.46 * S) / 2 + 0.08;
+        const maxD = (0.70 * S) / 2 + 0.08;
+
+        // Guest reporting
         if (!window.PF_MULTIPLAYER.isHost) {
-          // Guest check: if Guest detects an out-of-bounds locally, notify Host immediately
-          if (!this.isRoundEnding && Date.now() >= this.settleCooldownUntil && window.__pf && window.__pf.pens) {
-            const pPen = window.__pf.pens["player"];
-            const rPen = window.__pf.pens["rival"];
-            if (pPen && rPen && pPen.body && rPen.body) {
-              const pPos = pPen.body.translation();
-              const rPos = rPen.body.translation();
-              const S = window.roomPlayerCount ? (1.0 + (window.roomPlayerCount - 2) * 0.125) : 1.0;
-              const maxW = (0.46 * S) / 2 + 0.08;
-              const maxD = (0.70 * S) / 2 + 0.08;
-              const pOut = pPos.y < -0.035 || Math.abs(pPos.x) > maxW || Math.abs(pPos.z) > maxD;
-              const rOut = rPos.y < -0.035 || Math.abs(rPos.x) > maxW || Math.abs(rPos.z) > maxD;
-              if (pOut || rOut) {
+          if (!this.isRoundEnding && Date.now() >= this.settleCooldownUntil) {
+            for (const penId of allPens) {
+              if (this.outs.has(penId)) continue;
+              const phys = pf.pens[penId];
+              if (!phys || !phys.body) continue;
+              const pos = phys.body.translation();
+              const isOut = pos.y < -0.035 || Math.abs(pos.x) > maxW || Math.abs(pos.z) > maxD;
+              if (isOut) {
+                this.outs.add(penId);
                 const allT = {};
-                for (const [id, phys] of Object.entries(window.__pf.pens)) {
-                  const t = phys?.body?.translation(), r = phys?.body?.rotation();
+                for (const [id, p] of Object.entries(pf.pens)) {
+                  const t = p?.body?.translation(), r = p?.body?.rotation();
                   if (t && r) allT[id] = { p: [t.x, t.y, t.z], q: [r.x, r.y, r.z, r.w] };
                 }
-                window.PF_MULTIPLAYER.sendPenFallen(pOut, rOut, allT);
+                window.PF_MULTIPLAYER.sendPenFallen(false, false, allT, penId);
               }
             }
           }
@@ -1708,57 +1822,54 @@
         // Authoritative Host Referee
         if (this.isRoundEnding) return;
         if (Date.now() < this.settleCooldownUntil) return;
-        if (!window.__pf || !window.__pf.pens) return;
 
-        const pPen = window.__pf.pens["player"];
-        const rPen = window.__pf.pens["rival"];
-        if (!pPen || !rPen || !pPen.body || !rPen.body) return;
+        let newlyOut = false;
+        for (const penId of allPens) {
+          if (this.outs.has(penId)) continue;
+          const phys = pf.pens[penId];
+          if (!phys || !phys.body) continue;
+          const pos = phys.body.translation();
+          const isOut = pos.y < -0.035 || Math.abs(pos.x) > maxW || Math.abs(pos.z) > maxD;
+          if (isOut) {
+            this.outs.add(penId);
+            newlyOut = true;
+            try {
+              phys.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+              phys.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+            } catch(e) {}
+            const fallenName = window.getPenDisplayName(penId);
+            if (pf.controller && pf.controller.hud) {
+              pf.controller.hud.showCue(`💥 ${fallenName} FELL OFF!`, "🚫");
+            }
+          }
+        }
 
-        const pPos = pPen.body.translation();
-        const rPos = rPen.body.translation();
+        const survivors = allPens.filter(id => !this.outs.has(id));
 
-        // Table threshold: Desk surface is y=0. If y drops below -0.035 or flies off desk edges, pen is OUT!
-        const S = window.roomPlayerCount ? (1.0 + (window.roomPlayerCount - 2) * 0.125) : 1.0;
-        const maxW = (0.46 * S) / 2 + 0.08;
-        const maxD = (0.70 * S) / 2 + 0.08;
-
-        const pOut = (forcedPOut !== null) ? forcedPOut : (pPos.y < -0.035 || Math.abs(pPos.x) > maxW || Math.abs(pPos.z) > maxD);
-        const rOut = (forcedROut !== null) ? forcedROut : (rPos.y < -0.035 || Math.abs(rPos.x) > maxW || Math.abs(rPos.z) > maxD);
-
-        if (pOut || rOut) {
+        // If 1 or 0 pens survive, round ends!
+        if (survivors.length <= 1) {
           this.isRoundEnding = true;
-          try {
-            pPen.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
-            pPen.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
-            rPen.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
-            rPen.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
-          } catch(e) {}
-
-          let winner = null;
-          if (pOut && !rOut) {
-            winner = "rival"; // Guest scored
-            this.scores.rival++;
-          } else if (rOut && !pOut) {
-            winner = "player"; // Host scored
-            this.scores.player++;
+          let winner = survivors.length === 1 ? survivors[0] : null;
+          if (winner) {
+            this.scores[winner] = (this.scores[winner] || 0) + 1;
           }
 
           const currentFinishedRound = this.round;
-          const hostName = (localStorage.getItem("pf_name") || "YOU").toUpperCase();
-          const guestName = (window.PF_MULTIPLAYER.remoteName || "FRIEND").toUpperCase();
-          
-          let resultText = "⚖️ DRAW! BOTH PENS FELL OFF!";
-          if (winner === "player") resultText = `👑 ${hostName} WON ROUND ${currentFinishedRound}!`;
-          if (winner === "rival") resultText = `💥 ${guestName} WON ROUND ${currentFinishedRound}!`;
-
-          if (window.__pf.controller && window.__pf.controller.hud) {
-            window.__pf.controller.hud.showResult(resultText, 2500);
+          let resultText = "⚖️ DRAW! ALL PENS FELL OFF!";
+          if (winner) {
+            const winnerName = window.getPenDisplayName(winner);
+            resultText = `👑 ${winnerName} WON ROUND ${currentFinishedRound}!`;
           }
 
-          const matchWinner = this.scores.player >= this.targetWins ? "player" : (this.scores.rival >= this.targetWins ? "rival" : null);
+          if (pf.controller && pf.controller.hud) {
+            pf.controller.hud.showResult(resultText, 2500);
+          }
+
+          const matchWinner = allPens.find(id => (this.scores[id] || 0) >= this.targetWins) || null;
           const nextRound = matchWinner ? currentFinishedRound : (currentFinishedRound + 1);
-          // Alternating turns for rounds: Round 1 = player, Round 2 = rival, Round 3 = player
-          const nextStriker = (nextRound % 2 === 1) ? "player" : "rival";
+
+          // Select starting striker for next round (rotates in circle)
+          const nextStriker = allPens[(nextRound - 1) % allPens.length];
 
           window.PF_MULTIPLAYER.sendReliable({
             type: 'ROUND_RESULT',
@@ -1775,9 +1886,9 @@
 
           if (matchWinner) {
             setTimeout(() => {
-              const championName = matchWinner === "player" ? hostName : guestName;
-              if (window.__pf.controller && window.__pf.controller.hud) {
-                window.__pf.controller.hud.showResult(`🏆 ${championName} WON THE MATCH (${this.scores.player} - ${this.scores.rival})!`, 3500);
+              const championName = window.getPenDisplayName(matchWinner);
+              if (pf.controller && pf.controller.hud) {
+                pf.controller.hud.showResult(`🏆 ${championName} WON THE BATTLE ROYALE!`, 3500);
               }
               setTimeout(() => {
                 window.showGameOverModal(matchWinner, this.scores);
@@ -1788,54 +1899,67 @@
               this.startNextRoundAsHost(nextRound, nextStriker);
             }, 2200);
           }
+        } else if (newlyOut) {
+          // If a pen fell off but multiple remain, ensure turn points to an alive player
+          const curStriker = window.PF_MULTIPLAYER.currentStriker;
+          if (this.outs.has(curStriker)) {
+            const curIdx = allPens.indexOf(curStriker);
+            let nextS = curStriker;
+            for (let s = 1; s <= allPens.length; s++) {
+              const candidate = allPens[(curIdx + s) % allPens.length];
+              if (!this.outs.has(candidate)) {
+                nextS = candidate;
+                break;
+              }
+            }
+            window.PF_MULTIPLAYER.currentStriker = nextS;
+            window.PF_NET.updateTurnCue();
+          }
+          window.updateLiveScoreboard();
         }
       },
 
       startNextRoundAsHost: function(nextRound, nextStriker) {
         if (!window.__pf) return;
         const pf = window.__pf;
+        const allPens = Object.keys(pf.pens);
+        const numPlayers = Math.max(2, Math.min(8, window.roomPlayerCount || window.matchPlayerCount || allPens.length));
+        const S = 1.0 + (numPlayers - 2) * 0.125;
+        const ROSTER_KEYS = ["player", "rival", "bot3", "bot4", "bot5", "bot6", "bot7", "bot8"];
+        const pensPayload = {};
 
-        const S = window.roomPlayerCount ? (1.0 + (window.roomPlayerCount - 2) * 0.125) : 1.0;
-        const spawnZ = ((0.70 * S) / 2) - 0.08;
+        this.outs.clear();
 
-        const pPen = pf.pens ? pf.pens["player"] : null;
-        const rPen = pf.pens ? pf.pens["rival"] : null;
-        if (!pPen || !rPen || !pPen.body || !rPen.body) return;
+        for (let k = 0; k < numPlayers; k++) {
+          const penKey = ROSTER_KEYS[k];
+          const penPhys = pf.pens ? pf.pens[penKey] : null;
+          if (!penPhys || !penPhys.body) continue;
 
-        const pRad = (pPen.spec && pPen.spec.radius) || 0.008;
-        const rRad = (rPen.spec && rPen.spec.radius) || 0.008;
+          const spawn = window.calculatePenSpawn(k, numPlayers, S);
+          const rad = (penPhys.spec && penPhys.spec.radius) || 0.008;
+          const halfYaw = spawn.yaw / 2;
+          const qy = Math.sin(halfYaw);
+          const qw = Math.cos(halfYaw);
 
-        // Player (Host) spawns at -spawnZ facing +Z (center)
-        pPen.body.setTranslation({ x: 0, y: pRad + 0.002, z: -spawnZ }, true);
-        pPen.body.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true);
-        pPen.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
-        pPen.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+          penPhys.body.setTranslation({ x: spawn.x, y: rad + 0.002, z: spawn.z }, true);
+          penPhys.body.setRotation({ x: 0, y: qy, z: 0, w: qw }, true);
+          penPhys.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+          penPhys.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
 
-        // Rival (Guest) spawns at +spawnZ facing -Z (center)
-        rPen.body.setTranslation({ x: 0, y: rRad + 0.002, z: spawnZ }, true);
-        rPen.body.setRotation({ x: 0, y: 1, z: 0, w: 0 }, true);
-        rPen.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
-        rPen.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
-
-        if (pf.visualPens) {
-          if (pf.visualPens["player"] && pf.visualPens["player"].root) {
-            pf.visualPens["player"].root.position.set(0, pRad + 0.002, -spawnZ);
-            pf.visualPens["player"].root.quaternion.set(0, 0, 0, 1);
+          if (pf.visualPens && pf.visualPens[penKey] && pf.visualPens[penKey].root) {
+            pf.visualPens[penKey].root.position.set(spawn.x, rad + 0.002, spawn.z);
+            pf.visualPens[penKey].root.quaternion.set(0, qy, 0, qw);
           }
-          if (pf.visualPens["rival"] && pf.visualPens["rival"].root) {
-            pf.visualPens["rival"].root.position.set(0, rRad + 0.002, spawnZ);
-            pf.visualPens["rival"].root.quaternion.set(0, 1, 0, 0);
-          }
+
+          pensPayload[penKey] = {
+            p: [spawn.x, rad + 0.002, spawn.z],
+            q: [0, qy, 0, qw]
+          };
         }
 
         if (pf.physWorld && pf.physWorld.snapTransforms) {
           pf.physWorld.snapTransforms();
         }
-
-        const pensPayload = {
-          player: { p: [0, pRad + 0.002, -spawnZ], q: [0, 0, 0, 1] },
-          rival: { p: [0, rRad + 0.002, spawnZ], q: [0, 1, 0, 0] }
-        };
 
         if (window.PF_MULTIPLAYER) {
           window.PF_MULTIPLAYER.currentStriker = nextStriker;
@@ -1848,10 +1972,10 @@
         window.updateLiveScoreboard();
         window.PF_NET.updateTurnCue();
 
-        if (window.__pf.controller && window.__pf.controller.hud) {
-          const isMyTurn = (nextStriker === "player");
-          const starterLabel = isMyTurn ? "YOUR TURN" : `${(window.PF_MULTIPLAYER?.remoteName || "OPPONENT").toUpperCase()}'S TURN`;
-          window.__pf.controller.hud.showCue(`ROUND ${nextRound} • ${starterLabel}`);
+        if (pf.controller && pf.controller.hud) {
+          const isMyTurn = window.PF_MULTIPLAYER ? window.PF_MULTIPLAYER.isMyTurn() : false;
+          const starterLabel = isMyTurn ? "YOUR TURN" : `${window.getPenDisplayName(nextStriker)}'S TURN`;
+          pf.controller.hud.showCue(`ROUND ${nextRound} • ${starterLabel}`);
         }
       }
     };
@@ -1878,13 +2002,23 @@
 
     // Attach Multiplayer Event Handlers
     if (window.PF_MULTIPLAYER) {
-      window.PF_MULTIPLAYER.on('playerJoined', (data) => {
-        if (data.isHost) {
-          window.currentChosenPens[1] = data.remotePen || "pilotV5";
-        } else {
-          window.currentChosenPens[0] = data.remotePen || "gripper";
+      window.PF_MULTIPLAYER.on('lobbyUpdate', (data) => {
+        if (window.renderLobbySlotRows) window.renderLobbySlotRows();
+        const picker = document.querySelector(".pen-selection-hub");
+        if (picker && window.showPreMatchPenSelection) {
+          window.showPreMatchPenSelection(window.matchPlayerCount || window.roomPlayerCount || 2, "friend");
         }
+      });
+
+      window.PF_MULTIPLAYER.on('playerJoined', (data) => {
+        if (window.renderLobbySlotRows) window.renderLobbySlotRows();
         window.PF_NET.updateLobbyUI(`🟢 ${data.remoteName} CONNECTED!`);
+        window.updateLiveScoreboard();
+      });
+
+      window.PF_MULTIPLAYER.on('playerLeft', (data) => {
+        if (window.renderLobbySlotRows) window.renderLobbySlotRows();
+        window.PF_NET.updateLobbyUI(`⚠️ ${data.name} LEFT ROOM`);
         window.updateLiveScoreboard();
       });
 
@@ -1902,12 +2036,18 @@
         if (data.pens && Array.isArray(data.pens)) {
           window.currentChosenPens = data.pens;
         }
+        if (data.playerCount) {
+          window.roomPlayerCount = window.matchPlayerCount = data.playerCount;
+        }
         window.confirmAndLaunchMatch(true);
       });
 
       window.PF_MULTIPLAYER.on('matchTimerStarted', (data) => {
         if (data.pens && Array.isArray(data.pens)) {
           window.currentChosenPens = data.pens;
+        }
+        if (data.playerCount) {
+          window.roomPlayerCount = window.matchPlayerCount = data.playerCount;
         }
         window.startMatchWithTimer(true);
       });
@@ -2167,6 +2307,47 @@
     }
 
     // Step 2: Room Lobby with Generated Code, Link & Connected Players
+    window.renderLobbySlotRows = function() {
+      const container = document.querySelector(".connected-list");
+      if (!container) return;
+      const count = window.roomPlayerCount || 2;
+      const mp = window.PF_MULTIPLAYER;
+      const players = mp ? mp.players : [];
+      const mySlot = mp ? mp.mySlot : 0;
+      const hostName = (localStorage.getItem("pf_name") || "YOU").toUpperCase();
+
+      let html = "";
+      for (let i = 0; i < count; i++) {
+        const isHost = i === 0;
+        const isMe = (i === mySlot);
+        const p = players.find(x => x.slot === i);
+        const pName = p ? p.name : (isHost ? hostName : (isMe ? hostName : `Player ${i + 1} (Waiting...)`));
+        const isReady = isHost || !!p;
+
+        html += `
+          <div class="connected-player-row ${isHost ? 'is-host' : ''} ${isMe ? 'is-me' : ''}" style="display:flex; justify-content:space-between; align-items:center; background:${isMe ? 'var(--pf-mustard-light, #fdf6e2)' : 'var(--pf-paper-light)'}; border:var(--pf-border-thin); border-radius:var(--pf-radius-sm); padding:6px 10px; margin-bottom:6px; box-shadow:1px 1px 0 var(--pf-ink);">
+            <div class="c-player-left" style="display:flex; align-items:center; gap:8px;">
+              <span class="c-avatar">${isHost ? "👑" : (isMe ? "🖊️" : "👤")}</span>
+              <div class="c-details" style="display:flex; flex-direction:column; line-height:1.2;">
+                <span class="c-name" id="slot-player-${i + 1}-name" style="font-weight:700; font-size:12px;">${pName} ${isMe ? '(YOU)' : ''}</span>
+                <span class="c-role" style="font-size:9.5px; color:var(--pf-ink-muted);">${isHost ? "Room Leader (Host)" : `Player Slot ${i + 1}`}</span>
+              </div>
+            </div>
+            <span class="c-status-badge" style="font-size:10px; font-weight:700; color:${isReady ? 'var(--pf-teal)' : 'var(--pf-orange)'}; background:var(--pf-paper); border:1px solid var(--pf-ink); padding:2px 6px; border-radius:var(--pf-radius-pill);">
+              ${isReady ? '🟢 READY' : '⏳ WAITING'}
+            </span>
+          </div>
+        `;
+      }
+      container.innerHTML = html;
+
+      const pill = document.querySelector(".connected-pill");
+      if (pill) {
+        const activeCount = players.length || 1;
+        pill.textContent = `🟢 ${activeCount} / ${count} CONNECTED`;
+      }
+    };
+
     window.generateAndShowRoomLobby = function() {
       window.currentRoomCode = currentRoomCode = generateRoomCode();
       const { wrap, card } = ensureChitCard();
@@ -2177,26 +2358,6 @@
       window.PF_NET.createRoom(currentRoomCode);
 
       const roomUrl = `${window.location.origin}/?room=${currentRoomCode}`;
-
-      let connectedPlayersHtml = "";
-      const hostName = (localStorage.getItem("pf_name") || "YOU").toUpperCase();
-      const names = [hostName, "Opponent (Waiting to join...)"];
-
-      for (let i = 0; i < roomPlayerCount; i++) {
-        const isHost = i === 0;
-        connectedPlayersHtml += `
-          <div class="connected-player-row ${isHost ? 'is-host' : ''}" style="display:flex; justify-content:space-between; align-items:center; background:var(--pf-paper-light); border:var(--pf-border-thin); border-radius:var(--pf-radius-sm); padding:6px 10px; margin-bottom:6px; box-shadow:1px 1px 0 var(--pf-ink);">
-            <div class="c-player-left" style="display:flex; align-items:center; gap:8px;">
-              <span class="c-avatar">${isHost ? "👑" : "🖊️"}</span>
-              <div class="c-details" style="display:flex; flex-direction:column; line-height:1.2;">
-                <span class="c-name" id="${isHost ? 'slot-player-1-name' : 'slot-player-2-name'}" style="font-weight:700; font-size:12px;">${names[i] || `Player ${i + 1}`}</span>
-                <span class="c-role" style="font-size:9.5px; color:var(--pf-ink-muted);">${isHost ? "Room Leader (Host)" : "Player Slot"}</span>
-              </div>
-            </div>
-            <span class="c-status-badge" style="font-size:10px; font-weight:700; color:var(--pf-teal); background:var(--pf-paper); border:1px solid var(--pf-ink); padding:2px 6px; border-radius:var(--pf-radius-pill);">🟢 READY</span>
-          </div>
-        `;
-      }
 
       card.innerHTML = `
         <div class="arcade-hub room-lobby-hub">
@@ -2224,10 +2385,9 @@
             <div class="connected-section" style="background:var(--pf-paper); border:var(--pf-border); border-radius:var(--pf-radius-md); padding:10px; box-shadow:2px 2px 0 var(--pf-ink);">
               <div class="connected-head" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                 <span class="connected-title" style="font-size:11px; font-weight:800;">LOBBY SLOTS (${roomPlayerCount} PLAYERS)</span>
-                <span class="connected-pill" style="font-size:9.5px; font-weight:700; color:var(--pf-teal);">⏳ WAITING FOR FRIEND...</span>
+                <span class="connected-pill" style="font-size:9.5px; font-weight:700; color:var(--pf-teal);">⏳ WAITING FOR PLAYERS...</span>
               </div>
               <div class="connected-list">
-                ${connectedPlayersHtml}
               </div>
             </div>
 
@@ -2243,6 +2403,7 @@
       wrap.classList.add("show");
       wrap.removeAttribute("inert");
       wrap.removeAttribute("aria-hidden");
+      window.renderLobbySlotRows();
     };
 
     window.copyRoomLink = function(url) {
@@ -2273,7 +2434,8 @@
       if (!fromRemote && window.PF_NET && window.PF_NET.connected) {
         window.PF_NET.send({
           type: 'START_MATCH',
-          pens: window.currentChosenPens
+          pens: window.currentChosenPens,
+          playerCount: roomPlayerCount
         });
       }
 
@@ -2317,7 +2479,8 @@
       if (!fromRemote && window.PF_NET && window.PF_NET.connected) {
         window.PF_NET.send({
           type: 'LAUNCH_MATCH',
-          pens: window.currentChosenPens
+          pens: window.currentChosenPens,
+          playerCount: matchPlayerCount
         });
       }
       const chosenList = (window.currentChosenPens || []).slice(0, matchPlayerCount);
@@ -2344,7 +2507,7 @@
     };
 
     window.showPreMatchPenSelection = function(playerCount, mode = "solo") {
-      matchPlayerCount = playerCount || 2;
+      matchPlayerCount = playerCount || window.roomPlayerCount || 2;
       matchMode = mode;
 
       const card = document.querySelector(".chit");
@@ -2352,24 +2515,29 @@
 
       const isMulti = window.PF_MULTIPLAYER && window.PF_MULTIPLAYER.state === 'OPEN';
       const isHost = window.PF_MULTIPLAYER ? window.PF_MULTIPLAYER.isHost : true;
-      const localName = (localStorage.getItem("pf_name") || (isHost ? "Host" : "Friend")).toUpperCase();
-      const remoteName = (window.PF_MULTIPLAYER?.remoteName || (isHost ? "Friend" : "Host")).toUpperCase();
+      const mySlot = window.PF_MULTIPLAYER ? window.PF_MULTIPLAYER.mySlot : (isHost ? 0 : 1);
+      const localName = (localStorage.getItem("pf_name") || (isHost ? "Host" : "Player")).toUpperCase();
 
       let slotsHtml = "";
       for (let i = 0; i < matchPlayerCount; i++) {
         const penId = (window.currentChosenPens && window.currentChosenPens[i]) || ALL_12_PENS[i % ALL_12_PENS.length].id;
         const penObj = ALL_12_PENS.find(p => p.id === penId) || ALL_12_PENS[0];
         
-        // In multiplayer:
-        // Host controls slot 0, Guest controls slot 1
-        const isMySlot = !isMulti || (isHost ? i === 0 : i === 1);
-        const slotBadge = isMulti
-          ? (i === 0 ? (isHost ? `${localName} (YOU)` : `${remoteName}`)
-                     : (isHost ? `${remoteName}` : `${localName} (YOU)`))
-          : (i === 0 ? `${localName} (YOU)` : `BOT ${i} (AI)`);
+        const isMySlot = !isMulti || (i === mySlot);
+        let slotBadge = `PLAYER ${i + 1}`;
+        if (isMulti) {
+          const p = window.PF_MULTIPLAYER.players.find(x => x.slot === i);
+          if (p && p.name) {
+            slotBadge = (i === mySlot) ? `${p.name.toUpperCase()} (YOU)` : p.name.toUpperCase();
+          } else {
+            slotBadge = (i === mySlot) ? `${localName} (YOU)` : `PLAYER ${i + 1}`;
+          }
+        } else {
+          slotBadge = (i === 0) ? `${localName} (YOU)` : `BOT ${i} (AI)`;
+        }
 
         const clickAttr = isMySlot ? `onclick="window.openPenPickerModal(${i})"` : `style="opacity:0.85; cursor:not-allowed;" title="Opponent selects their own pen"`;
-        const actionText = isMySlot ? "Click to change ❯" : "🔒 Chosen by Opponent";
+        const actionText = isMySlot ? "Click to change ❯" : "🔒 Chosen by Player";
 
         slotsHtml += `
           <div class="player-pen-slot ${isMySlot ? 'my-pen-slot' : 'opponent-pen-slot'}">
@@ -2392,7 +2560,7 @@
         <div class="arcade-hub pen-selection-hub">
           <div class="hub-header">
             <button type="button" class="hub-back-btn" onclick="if(penSelectionTimerInterval){clearInterval(penSelectionTimerInterval); penSelectionTimerInterval=null;} window.showFriendSetup()">← BACK</button>
-            <div class="hub-badge">⚡ CHOOSE YOUR PEN ⚡</div>
+            <div class="hub-badge">⚡ CHOOSE YOUR PEN (${matchPlayerCount} PLAYERS) ⚡</div>
             <button type="button" class="hub-random-btn" onclick="window.randomizeMatchPens()">🎲 RANDOM</button>
           </div>
 
@@ -2415,17 +2583,6 @@
               <button type="button" class="hub-action-btn btn-start-battle" onclick="if(penSelectionTimerInterval){clearInterval(penSelectionTimerInterval); penSelectionTimerInterval=null;} window.confirmAndLaunchMatch()">
                 🚀 ENTER ARENA NOW
               </button>
-            </div>
-          </div>
-        </div>
-
-        <div id="inline-pen-picker" class="picker-overlay">
-          <div class="picker-modal">
-            <div class="picker-head">
-              <span class="picker-title" id="picker-target-title">SELECT YOUR PEN</span>
-              <button type="button" class="picker-close-btn" onclick="window.closePenPickerModal()">✕</button>
-            </div>
-            <div class="picker-grid" id="picker-pens-list">
             </div>
           </div>
         </div>
@@ -2550,73 +2707,113 @@
       const pf = window.__pf;
       const ctrl = pf ? pf.controller : null;
       const isMulti = window.PF_MULTIPLAYER && window.PF_MULTIPLAYER.state === 'OPEN';
+      const numPlayers = Math.max(2, Math.min(8, window.roomPlayerCount || window.matchPlayerCount || (pf && pf.pens ? Object.keys(pf.pens).length : 2)));
+      const ROSTER_KEYS = ["player", "rival", "bot3", "bot4", "bot5", "bot6", "bot7", "bot8"];
 
-      let p1Name, p1PenId, p2Name, p2PenId, p1Wins, p2Wins, roundNum;
+      // For 2 players: classic duel scoreboard
+      if (numPlayers === 2) {
+        let p1Name, p1PenId, p2Name, p2PenId, p1Wins, p2Wins, roundNum;
 
-      if (isMulti) {
-        const mp = window.PF_MULTIPLAYER;
-        const mm = window.PF_MULTIPLAYER_MATCH;
-        const localName = (localStorage.getItem("pf_name") || "YOU").toUpperCase();
-        const remoteName = (mp.remoteName || "OPPONENT").toUpperCase();
+        if (isMulti) {
+          const mp = window.PF_MULTIPLAYER;
+          const mm = window.PF_MULTIPLAYER_MATCH;
+          const localName = (localStorage.getItem("pf_name") || "YOU").toUpperCase();
+          const remoteName = (mp.remoteName || "OPPONENT").toUpperCase();
 
-        if (mp.isHost) {
-          p1Name = localName;
-          p1PenId = (window.currentChosenPens && window.currentChosenPens[0]) ? window.currentChosenPens[0] : getEquippedPenId();
-          p2Name = remoteName;
-          p2PenId = (window.currentChosenPens && window.currentChosenPens[1]) ? window.currentChosenPens[1] : "pilotV5";
+          if (mp.isHost) {
+            p1Name = localName;
+            p1PenId = (window.currentChosenPens && window.currentChosenPens[0]) ? window.currentChosenPens[0] : getEquippedPenId();
+            p2Name = remoteName;
+            p2PenId = (window.currentChosenPens && window.currentChosenPens[1]) ? window.currentChosenPens[1] : "pilotV5";
+          } else {
+            p1Name = remoteName;
+            p1PenId = (window.currentChosenPens && window.currentChosenPens[0]) ? window.currentChosenPens[0] : "gripper";
+            p2Name = localName;
+            p2PenId = (window.currentChosenPens && window.currentChosenPens[1]) ? window.currentChosenPens[1] : getEquippedPenId();
+          }
+          p1Wins = mm ? (mm.scores.player || 0) : 0;
+          p2Wins = mm ? (mm.scores.rival || 0) : 0;
+          roundNum = mm ? mm.round : 1;
         } else {
-          p1Name = remoteName;
-          p1PenId = (window.currentChosenPens && window.currentChosenPens[0]) ? window.currentChosenPens[0] : "gripper";
-          p2Name = localName;
-          p2PenId = (window.currentChosenPens && window.currentChosenPens[1]) ? window.currentChosenPens[1] : getEquippedPenId();
+          p1Name = (localStorage.getItem("pf_name") || "YOU").toUpperCase();
+          p1PenId = (window.currentChosenPens && window.currentChosenPens[0]) ? window.currentChosenPens[0] : getEquippedPenId();
+          p2Name = (ctrl && ctrl.rivalName ? ctrl.rivalName : "BUNTY").toUpperCase();
+          p2PenId = (window.currentChosenPens && window.currentChosenPens[1]) ? window.currentChosenPens[1] : "pilotV5";
+          p1Wins = ctrl && ctrl.wins ? (ctrl.wins.player || 0) : 0;
+          p2Wins = ctrl && ctrl.wins ? (ctrl.wins.rival || ctrl.wins.bots || 0) : 0;
+          roundNum = p1Wins + p2Wins + 1;
         }
-        p1Wins = mm ? mm.scores.player : 0;
-        p2Wins = mm ? mm.scores.rival : 0;
-        roundNum = mm ? mm.round : 1;
-      } else {
-        p1Name = (localStorage.getItem("pf_name") || "YOU").toUpperCase();
-        p1PenId = (window.currentChosenPens && window.currentChosenPens[0]) ? window.currentChosenPens[0] : getEquippedPenId();
-        p2Name = (ctrl && ctrl.rivalName ? ctrl.rivalName : "BUNTY").toUpperCase();
-        p2PenId = (window.currentChosenPens && window.currentChosenPens[1]) ? window.currentChosenPens[1] : "pilotV5";
-        p1Wins = ctrl && ctrl.wins ? (ctrl.wins.player || 0) : 0;
-        p2Wins = ctrl && ctrl.wins ? (ctrl.wins.rival || ctrl.wins.bots || 0) : 0;
-        roundNum = p1Wins + p2Wins + 1;
+
+        const p1PenObj = ALL_12_PENS.find(p => p.id === p1PenId) || ALL_12_PENS[0];
+        const p2PenObj = ALL_12_PENS.find(p => p.id === p2PenId) || ALL_12_PENS[1];
+
+        const p1NameEl = document.getElementById("score-p1-name");
+        const p1PenEl = document.getElementById("score-p1-pen");
+        const p1ImgEl = document.getElementById("score-p1-img");
+        if (p1NameEl) p1NameEl.textContent = p1Name;
+        if (p1PenEl) p1PenEl.textContent = p1PenObj.short;
+        if (p1ImgEl && p1ImgEl.getAttribute("src") !== p1PenObj.img) p1ImgEl.src = p1PenObj.img;
+
+        const p2NameEl = document.getElementById("score-p2-name");
+        const p2PenEl = document.getElementById("score-p2-pen");
+        const p2ImgEl = document.getElementById("score-p2-img");
+        if (p2NameEl) p2NameEl.textContent = p2Name;
+        if (p2PenEl) p2PenEl.textContent = p2PenObj.short;
+        if (p2ImgEl && p2ImgEl.getAttribute("src") !== p2PenObj.img) p2ImgEl.src = p2PenObj.img;
+
+        const roundText = document.getElementById("score-round-text");
+        if (roundText) roundText.textContent = `ROUND ${roundNum}`;
+
+        const renderPips = (elId, wins, target = 2) => {
+          const el = document.getElementById(elId);
+          if (!el) return;
+          let html = "";
+          for (let i = 0; i < target; i++) {
+            html += `<span class="score-pip ${i < wins ? 'pip-win' : ''}"></span>`;
+          }
+          if (el.innerHTML !== html) el.innerHTML = html;
+        };
+
+        renderPips("score-p1-dots", p1Wins, 2);
+        renderPips("score-p2-dots", p2Wins, 2);
+        return;
       }
 
-      const p1PenObj = ALL_12_PENS.find(p => p.id === p1PenId) || ALL_12_PENS[0];
-      const p2PenObj = ALL_12_PENS.find(p => p.id === p2PenId) || ALL_12_PENS[1];
+      // Multi-Player Scoreboard (3 to 8 Players Battle Royale)
+      const mm = window.PF_MULTIPLAYER_MATCH;
+      const roundNum = mm ? mm.round : 1;
+      const currentStriker = window.PF_MULTIPLAYER ? window.PF_MULTIPLAYER.currentStriker : "player";
 
-      const p1NameEl = document.getElementById("score-p1-name");
-      const p1PenEl = document.getElementById("score-p1-pen");
-      const p1ImgEl = document.getElementById("score-p1-img");
-      if (p1NameEl) p1NameEl.textContent = p1Name;
-      if (p1PenEl) p1PenEl.textContent = p1PenObj.short;
-      if (p1ImgEl && p1ImgEl.getAttribute("src") !== p1PenObj.img) p1ImgEl.src = p1PenObj.img;
+      let chipsHtml = "";
+      for (let k = 0; k < numPlayers; k++) {
+        const penKey = ROSTER_KEYS[k];
+        const penId = (window.currentChosenPens && window.currentChosenPens[k]) || ALL_12_PENS[k % ALL_12_PENS.length].id;
+        const penObj = ALL_12_PENS.find(p => p.id === penId) || ALL_12_PENS[0];
+        const pName = window.getPenDisplayName(penKey);
+        const wins = mm && mm.scores ? (mm.scores[penKey] || 0) : 0;
+        const isOut = mm && mm.outs ? mm.outs.has(penKey) : false;
+        const isTurn = (currentStriker === penKey);
 
-      const p2NameEl = document.getElementById("score-p2-name");
-      const p2PenEl = document.getElementById("score-p2-pen");
-      const p2ImgEl = document.getElementById("score-p2-img");
-      if (p2NameEl) p2NameEl.textContent = p2Name;
-      if (p2PenEl) p2PenEl.textContent = p2PenObj.short;
-      if (p2ImgEl && p2ImgEl.getAttribute("src") !== p2PenObj.img) p2ImgEl.src = p2PenObj.img;
+        chipsHtml += `
+          <div class="multi-score-chip ${isTurn ? 'is-turn' : ''} ${isOut ? 'is-out' : ''}" style="display:flex; align-items:center; gap:5px; background:${isTurn ? 'var(--pf-mustard-light, #fdf6e2)' : (isOut ? '#f1f1f1' : 'var(--pf-paper, #fff)')}; border:${isTurn ? '2px solid var(--pf-orange)' : '1px solid var(--pf-ink)'}; border-radius:14px; padding:3px 8px; opacity:${isOut ? '0.45' : '1'}; box-shadow:1.5px 1.5px 0 var(--pf-ink);">
+            <img src="${penObj.img}" alt="${penObj.name}" style="width:20px; height:20px; object-fit:contain;" />
+            <div style="display:flex; flex-direction:column; line-height:1;">
+              <span style="font-size:10px; font-weight:800; color:${isOut ? '#888' : 'var(--pf-ink)'}">${pName}</span>
+              <span style="font-size:8.5px; color:var(--pf-orange); font-weight:700;">${isOut ? 'OUT' : '★ ' + wins}</span>
+            </div>
+          </div>
+        `;
+      }
 
-      const roundText = document.getElementById("score-round-text");
-      if (roundText) roundText.textContent = `ROUND ${roundNum}`;
-
-      const renderPips = (elId, wins, target = 2) => {
-        const el = document.getElementById(elId);
-        if (!el) return;
-        let html = "";
-        for (let i = 0; i < target; i++) {
-          html += `<span class="score-pip ${i < wins ? 'pip-win' : ''}"></span>`;
-        }
-        if (el.innerHTML !== html) {
-          el.innerHTML = html;
-        }
-      };
-
-      renderPips("score-p1-dots", p1Wins, 2);
-      renderPips("score-p2-dots", p2Wins, 2);
+      sb.innerHTML = `
+        <div style="display:flex; align-items:center; gap:8px; overflow-x:auto; max-width:90vw; padding:4px 6px;">
+          <span style="font-family:var(--pf-font-display); font-size:13px; background:var(--pf-mustard); border:1px solid var(--pf-ink); border-radius:12px; padding:3px 8px; white-space:nowrap;">R${roundNum}</span>
+          ${chipsHtml}
+          <button type="button" class="pf-score-exit-btn" id="pf-score-exit-btn" onclick="window.exitMatchToMainMenu()" title="Exit Match" style="padding:4px 8px; font-size:10px;">
+            🚪 EXIT
+          </button>
+        </div>
+      `;
     };
 
     window.setInterval(window.updateLiveScoreboard, 300);
