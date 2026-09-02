@@ -2907,6 +2907,16 @@
       window.PF_MULTIPLAYER.on('stateChange', () => window.updateVoiceHUD());
     }
 
+    // Unlock WebRTC remote audio playback on mobile devices (iOS Safari / Chrome) on first interaction
+    function unlockMobileVoiceAudio() {
+      const audioEl = document.getElementById('pf-remote-voice-audio');
+      if (audioEl && audioEl.srcObject && audioEl.paused) {
+        audioEl.play().catch(() => {});
+      }
+    }
+    document.addEventListener('touchstart', unlockMobileVoiceAudio, { passive: true });
+    document.addEventListener('click', unlockMobileVoiceAudio, { passive: true });
+
     // Responsive Camera FOV for Mobile Portrait & Landscape
     window.updateResponsiveCameraFOV = function() {
       if (window.__pf && window.__pf.camera) {

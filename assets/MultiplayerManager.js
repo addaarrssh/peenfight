@@ -113,8 +113,24 @@
         newRound: [],
         matchTimerStarted: [],
         rematchVote: [],
+        voiceStateChanged: [],
+        voiceSpeaking: [],
         disconnected: []
       };
+
+      // Voice Chat (WebRTC Audio Stream)
+      this.isVoiceConnected = false;
+      this.isMicMuted = true;
+      this.isSpeakerMuted = false;
+      this.isSpeakingLocal = false;
+      this.isSpeakingRemote = false;
+      this.localVoiceStream = null;
+      this.remoteVoiceStream = null;
+      this.silentVoiceStream = null;
+      this.voiceCall = null;
+      this.voiceAudioEl = null;
+      this.voiceMeterRunning = false;
+      this.remotePeerId = null;
 
       this.setupVisibilityListeners();
     }
@@ -247,6 +263,7 @@
 
       this.conns.set(conn.peer, guestInfo);
       if (!this.conn) this.conn = conn;
+      if (!this.remotePeerId) this.remotePeerId = conn.peer;
 
       conn.on('open', () => {
         console.log(`[PF_MULTIPLAYER] Guest connected on DataChannel. Assigned slot: ${assignedSlot}`);
@@ -340,6 +357,8 @@
           }
         });
 
+        this.setupVoiceMediaListeners();
+
         this.peer.on('open', (id) => {
           this.peerId = id;
           console.log(`[PF_MULTIPLAYER] Peer online with ID: ${id}`);
@@ -416,6 +435,9 @@
           pen: this.localPen,
           isHost: false
         });
+
+        this.remotePeerId = this.conn.peer;
+        this.initiateVoiceCall();
 
         this.startHeartbeat();
       });
@@ -883,6 +905,237 @@
       return this.currentStriker === this.getMyPenId();
     }
 
+    // =========================================================================
+    // REAL-TIME P2P VOICE CHAT ENGINE (WebRTC Audio)
+    // =========================================================================
+    getAudioElement() {
+      if (!this.voiceAudioEl) {
+        this.voiceAudioEl = document.getElementById('pf-remote-voice-audio');
+      }
+      if (!this.voiceAudioEl) {
+        this.voiceAudioEl = document.createElement('audio');
+        this.voiceAudioEl.id = 'pf-remote-voice-audio';
+        this.voiceAudioEl.autoplay = true;
+        this.voiceAudioEl.playsInline = true;
+        this.voiceAudioEl.setAttribute('playsinline', '');
+        this.voiceAudioEl.setAttribute('webkit-playsinline', '');
+        document.body.appendChild(this.voiceAudioEl);
+      }
+      return this.voiceAudioEl;
+    }
+
+    createSilentVoiceStream() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return null;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const dst = ctx.createMediaStreamDestination();
+        osc.connect(dst);
+        osc.start();
+        const track = dst.stream.getAudioTracks()[0];
+        if (track) track.enabled = false;
+        this.silentVoiceStream = dst.stream;
+        return dst.stream;
+      } catch(e) {
+        return null;
+      }
+    }
+
+    setupVoiceMediaListeners() {
+      if (!this.peer) return;
+
+      this.peer.on('call', (incomingCall) => {
+        console.log('[PF_VOICE] Incoming voice call from peer...');
+        this.voiceCall = incomingCall;
+        const streamToSend = this.localVoiceStream || this.silentVoiceStream || this.createSilentVoiceStream();
+        incomingCall.answer(streamToSend);
+
+        incomingCall.on('stream', (remoteStream) => {
+          console.log('[PF_VOICE] Received remote voice stream!');
+          this.handleRemoteVoiceStream(remoteStream);
+        });
+
+        incomingCall.on('close', () => {
+          console.log('[PF_VOICE] Remote voice call closed');
+          this.isVoiceConnected = false;
+          this.emit('voiceStateChanged', this.getVoiceState());
+        });
+
+        incomingCall.on('error', (err) => {
+          console.warn('[PF_VOICE] Voice call error:', err);
+        });
+      });
+    }
+
+    initiateVoiceCall() {
+      if (!this.peer || !this.remotePeerId || this.voiceCall) return;
+      const streamToSend = this.localVoiceStream || this.silentVoiceStream || this.createSilentVoiceStream();
+      if (!streamToSend) return;
+
+      try {
+        console.log(`[PF_VOICE] Initiating voice call to ${this.remotePeerId}...`);
+        const call = this.peer.call(this.remotePeerId, streamToSend);
+        this.voiceCall = call;
+
+        call.on('stream', (remoteStream) => {
+          console.log('[PF_VOICE] Remote stream connected from outgoing call!');
+          this.handleRemoteVoiceStream(remoteStream);
+        });
+
+        call.on('close', () => {
+          console.log('[PF_VOICE] Outgoing voice call closed');
+          this.isVoiceConnected = false;
+          this.emit('voiceStateChanged', this.getVoiceState());
+        });
+
+        call.on('error', (err) => {
+          console.warn('[PF_VOICE] Outgoing voice call error:', err);
+        });
+      } catch(e) {
+        console.warn('[PF_VOICE] Could not initiate call:', e);
+      }
+    }
+
+    handleRemoteVoiceStream(remoteStream) {
+      this.remoteVoiceStream = remoteStream;
+      this.isVoiceConnected = true;
+      const audioEl = this.getAudioElement();
+      if (audioEl) {
+        audioEl.srcObject = remoteStream;
+        audioEl.muted = this.isSpeakerMuted;
+        audioEl.play().catch(e => {
+          console.log('[PF_VOICE] Audio playback waiting for mobile user interaction:', e);
+        });
+      }
+      this.startVoiceVolumeMonitoring();
+      this.emit('voiceStateChanged', this.getVoiceState());
+    }
+
+    async toggleMic() {
+      try {
+        if (this.isMicMuted) {
+          // Unmute Microphone
+          if (!this.localVoiceStream) {
+            console.log('[PF_VOICE] Requesting microphone access for mobile...');
+            this.localVoiceStream = await navigator.mediaDevices.getUserMedia({
+              audio: {
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true
+              },
+              video: false
+            });
+          }
+          const audioTrack = this.localVoiceStream.getAudioTracks()[0];
+          if (audioTrack) {
+            audioTrack.enabled = true;
+          }
+          this.isMicMuted = false;
+
+          // Replace track in active WebRTC stream if connected
+          if (this.voiceCall && this.voiceCall.peerConnection) {
+            const senders = this.voiceCall.peerConnection.getSenders();
+            const audioSender = senders.find(s => s.track && s.track.kind === 'audio');
+            if (audioSender && audioTrack) {
+              await audioSender.replaceTrack(audioTrack);
+            }
+          } else if (this.state === STATES.OPEN && this.remotePeerId) {
+            this.initiateVoiceCall();
+          }
+        } else {
+          // Mute Microphone
+          if (this.localVoiceStream) {
+            const audioTrack = this.localVoiceStream.getAudioTracks()[0];
+            if (audioTrack) {
+              audioTrack.enabled = false;
+            }
+          }
+          this.isMicMuted = true;
+        }
+        this.emit('voiceStateChanged', this.getVoiceState());
+        return !this.isMicMuted;
+      } catch(err) {
+        console.error('[PF_VOICE] Microphone permission error:', err);
+        alert('Microphone access is required for voice chat. Please allow mic permissions in your browser.');
+        this.isMicMuted = true;
+        this.emit('voiceStateChanged', this.getVoiceState());
+        return false;
+      }
+    }
+
+    toggleSpeaker() {
+      this.isSpeakerMuted = !this.isSpeakerMuted;
+      const audioEl = this.getAudioElement();
+      if (audioEl) {
+        audioEl.muted = this.isSpeakerMuted;
+        if (!this.isSpeakerMuted && audioEl.paused && audioEl.srcObject) {
+          audioEl.play().catch(() => {});
+        }
+      }
+      this.emit('voiceStateChanged', this.getVoiceState());
+      return !this.isSpeakerMuted;
+    }
+
+    getVoiceState() {
+      return {
+        micMuted: this.isMicMuted,
+        speakerMuted: this.isSpeakerMuted,
+        connected: this.isVoiceConnected,
+        speakingLocal: this.isSpeakingLocal,
+        speakingRemote: this.isSpeakingRemote
+      };
+    }
+
+    startVoiceVolumeMonitoring() {
+      if (this.voiceMeterRunning) return;
+      this.voiceMeterRunning = true;
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        let localAnalyser = null, remoteAnalyser = null;
+
+        if (this.localVoiceStream) {
+          const src = ctx.createMediaStreamSource(this.localVoiceStream);
+          localAnalyser = ctx.createAnalyser();
+          localAnalyser.fftSize = 64;
+          src.connect(localAnalyser);
+        }
+        if (this.remoteVoiceStream) {
+          const src = ctx.createMediaStreamSource(this.remoteVoiceStream);
+          remoteAnalyser = ctx.createAnalyser();
+          remoteAnalyser.fftSize = 64;
+          src.connect(remoteAnalyser);
+        }
+
+        const buf = new Uint8Array(32);
+        const checkVol = () => {
+          if (!this.voiceMeterRunning) return;
+          if (localAnalyser && !this.isMicMuted) {
+            localAnalyser.getByteFrequencyData(buf);
+            const avg = buf.reduce((a, b) => a + b, 0) / buf.length;
+            const speaking = avg > 14;
+            if (speaking !== this.isSpeakingLocal) {
+              this.isSpeakingLocal = speaking;
+              this.emit('voiceSpeaking', { who: 'local', speaking });
+            }
+          }
+          if (remoteAnalyser && !this.isSpeakerMuted) {
+            remoteAnalyser.getByteFrequencyData(buf);
+            const avg = buf.reduce((a, b) => a + b, 0) / buf.length;
+            const speaking = avg > 14;
+            if (speaking !== this.isSpeakingRemote) {
+              this.isSpeakingRemote = speaking;
+              this.emit('voiceSpeaking', { who: 'remote', speaking });
+            }
+          }
+          requestAnimationFrame(checkVol);
+        };
+        requestAnimationFrame(checkVol);
+      } catch(e) {}
+    }
+
     disconnect() {
       this.stopHeartbeat();
       this.clearConnectionTimeout();
@@ -907,6 +1160,25 @@
         try { this.peer.destroy(); } catch(e) {}
         this.peer = null;
       }
+
+      // Clean up Voice Chat
+      this.isVoiceConnected = false;
+      this.voiceMeterRunning = false;
+      if (this.voiceCall) {
+        try { this.voiceCall.close(); } catch(e) {}
+        this.voiceCall = null;
+      }
+      if (this.localVoiceStream) {
+        try { this.localVoiceStream.getTracks().forEach(t => t.stop()); } catch(e) {}
+        this.localVoiceStream = null;
+      }
+      if (this.silentVoiceStream) {
+        try { this.silentVoiceStream.getTracks().forEach(t => t.stop()); } catch(e) {}
+        this.silentVoiceStream = null;
+      }
+      this.isMicMuted = true;
+      this.emit('voiceStateChanged', this.getVoiceState());
+
       this.wasOpen = false;
       this.reconnectAttempts = 0;
       this.guestRetryCount = 0;

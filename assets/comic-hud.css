@@ -913,15 +913,31 @@
   color: #bbbbbb !important;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .pf-voice-hud {
-    top: max(10px, env(safe-area-inset-top));
-    right: 10px;
-    padding: 3px 6px;
-    gap: 5px;
+    top: auto !important;
+    bottom: max(16px, env(safe-area-inset-bottom, 16px)) !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    padding: 6px 12px !important;
+    gap: 10px !important;
+    border-radius: 9999px !important;
+    background: rgba(255, 255, 255, 0.94) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3), 2.5px 2.5px 0 var(--pf-ink, #1a1a1a) !important;
+    z-index: 15000 !important;
   }
   .voice-btn {
-    padding: 3px 7px;
-    font-size: 10px;
+    padding: 7px 14px !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    border-radius: 9999px !important;
+    box-shadow: 1.5px 1.5px 0 var(--pf-ink, #1a1a1a) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    touch-action: manipulation !important;
   }
 }
