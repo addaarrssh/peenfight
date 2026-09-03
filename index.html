@@ -757,11 +757,6 @@
       box-shadow: inset 2px 2px 0 rgba(0,0,0,0.08), 0 0 0 3px var(--pf-mustard-light);
     }
   </style>
-  <!-- Real-Time WebRTC P2P Multiplayer Engine -->
-  <script src="/assets/peerjs.min.js"></script>
-  <script src="/assets/MultiplayerManager.js"></script>
-  <!-- Manga & Chalkboard Backdrop System -->
-  <script src="/assets/ArenaBackdrop.js"></script>
 </head>
 <body>
   <div id="app"></div>
@@ -2098,26 +2093,23 @@
         window.isHandlingRemoteShot = true;
         if (window.__pf && window.__pf.pens) {
           if (data.transform) {
-            if (data.transform.p && data.transform.q && window.__pf.pens[data.striker]) {
-              const pen = window.__pf.pens[data.striker];
-              try {
-                pen.body.setTranslation({ x: data.transform.p[0], y: data.transform.p[1], z: data.transform.p[2] }, true);
-                pen.body.setRotation({ x: data.transform.q[0], y: data.transform.q[1], z: data.transform.q[2], w: data.transform.q[3] }, true);
-                pen.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
-                pen.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
-              } catch(e) {}
-            } else {
-              for (const [id, tf] of Object.entries(data.transform)) {
-                const pen = window.__pf.pens[id];
-                if (pen && tf && tf.p && tf.q) {
-                  try {
-                    pen.body.setTranslation({ x: tf.p[0], y: tf.p[1], z: tf.p[2] }, true);
-                    pen.body.setRotation({ x: tf.q[0], y: tf.q[1], z: tf.q[2], w: tf.q[3] }, true);
-                    pen.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
-                    pen.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
-                  } catch(e) {}
-                }
+            for (const [id, tf] of Object.entries(data.transform)) {
+              const pen = window.__pf.pens[id];
+              if (pen && tf && tf.p && tf.q) {
+                try {
+                  pen.body.setTranslation({ x: tf.p[0], y: tf.p[1], z: tf.p[2] }, true);
+                  pen.body.setRotation({ x: tf.q[0], y: tf.q[1], z: tf.q[2], w: tf.q[3] }, true);
+                  pen.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+                  pen.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+                  if (window.__pf.visualPens && window.__pf.visualPens[id] && window.__pf.visualPens[id].root) {
+                    window.__pf.visualPens[id].root.position.set(tf.p[0], tf.p[1], tf.p[2]);
+                    window.__pf.visualPens[id].root.quaternion.set(tf.q[0], tf.q[1], tf.q[2], tf.q[3]);
+                  }
+                } catch(e) {}
               }
+            }
+            if (window.__pf.physWorld && window.__pf.physWorld.snapTransforms) {
+              window.__pf.physWorld.snapTransforms();
             }
           }
           if (window.__pf.flick) {
@@ -2170,6 +2162,9 @@
                 }
               } catch(e) {}
             }
+          }
+          if (window.__pf.physWorld && window.__pf.physWorld.snapTransforms) {
+            window.__pf.physWorld.snapTransforms();
           }
         }
         if (data.striker && window.PF_MULTIPLAYER) {
