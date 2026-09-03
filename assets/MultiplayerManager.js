@@ -710,7 +710,17 @@
             this.broadcastToAll(packet, fromConn.peer);
           }
 
-          this.currentStriker = packet.nextStriker || packet.striker;
+          if (packet.nextStriker) {
+            this.currentStriker = packet.nextStriker;
+          } else {
+            const activePens = (typeof window !== 'undefined' && window.__pf && window.__pf.pens) ? Object.keys(window.__pf.pens) : this.rosterIds.slice(0, 2);
+            const curIdx = activePens.indexOf(packet.striker);
+            if (curIdx !== -1 && activePens.length > 1) {
+              this.currentStriker = activePens[(curIdx + 1) % activePens.length];
+            } else {
+              this.currentStriker = (packet.striker === "player") ? "rival" : "player";
+            }
+          }
           this.emit('opponentShot', {
             striker: packet.striker,
             shot: packet.shot,
@@ -833,9 +843,21 @@
     }
 
     sendShot(striker, shotAction, penTransform, nextStriker = null) {
-      if (nextStriker) {
-        this.currentStriker = nextStriker;
+      // Compute next striker if not explicitly provided
+      if (!nextStriker) {
+        // Get the list of active pens from the game engine
+        const activePens = (window.__pf && window.__pf.pens) ? Object.keys(window.__pf.pens) : this.rosterIds.slice(0, 2);
+        // Find current striker index and advance to next pen in rotation
+        const curIdx = activePens.indexOf(striker);
+        if (curIdx !== -1 && activePens.length > 1) {
+          nextStriker = activePens[(curIdx + 1) % activePens.length];
+        } else {
+          // Fallback: simple 2-player toggle
+          nextStriker = (striker === "player") ? "rival" : "player";
+        }
       }
+
+      this.currentStriker = nextStriker;
 
       return this.sendReliable({
         type: 'TURN',

@@ -2269,6 +2269,9 @@
 
         window.PF_MULTIPLAYER_MATCH.settleCooldownUntil = Date.now() + 1000;
         window.PF_MULTIPLAYER_MATCH.isRoundEnding = false;
+        if (window.PF_MULTIPLAYER_MATCH.outs) {
+          window.PF_MULTIPLAYER_MATCH.outs.clear();
+        }
         window.updateLiveScoreboard();
         window.PF_NET.updateTurnCue();
 
