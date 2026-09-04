@@ -994,24 +994,35 @@
 
       const isMulti = window.PF_MULTIPLAYER && window.PF_MULTIPLAYER.state === 'OPEN';
       const isHost = window.PF_MULTIPLAYER ? window.PF_MULTIPLAYER.isHost : true;
-      const myRole = isHost ? "player" : "rival";
+      const myPenId = window.PF_MULTIPLAYER ? window.PF_MULTIPLAYER.getMyPenId() : (isHost ? "player" : "rival");
       const localName = (localStorage.getItem("pf_name") || (isHost ? "Host" : "Friend")).toUpperCase();
       const remoteName = (window.PF_MULTIPLAYER?.remoteName || (isHost ? "Friend" : "Host")).toUpperCase();
 
       const p1Name = isMulti ? (isHost ? localName : remoteName) : localName;
       const p2Name = isMulti ? (isHost ? remoteName : localName) : (window.__pf?.controller?.rivalName || "BUNTY").toUpperCase();
 
-      const winnerName = (winnerRole === "player") ? p1Name : p2Name;
-      const isMeWinner = (winnerRole === myRole);
+      const numPlayers = Math.max(2, Math.min(8, window.roomPlayerCount || window.matchPlayerCount || (scores ? Object.keys(scores).length : 2)));
+      const winnerName = window.getPenDisplayName ? window.getPenDisplayName(winnerRole) : ((winnerRole === "player") ? p1Name : p2Name);
+      const isMeWinner = (winnerRole === myPenId);
 
-      card.innerHTML = `
-        <div class="arcade-hub game-over-hub">
-          <div class="game-over-header">
-            <span class="game-over-trophy">${isMeWinner ? "🏆" : "🥈"}</span>
-            <h2 class="game-over-title">${winnerName} WON!</h2>
-            <p class="game-over-sub">${isMeWinner ? "👑 Winner!" : "⚡ Play Rematch?"}</p>
-          </div>
-
+      let scoreboxHtml = "";
+      if (numPlayers > 2) {
+        const ROSTER_KEYS = ["player", "rival", "bot3", "bot4", "bot5", "bot6", "bot7", "bot8"];
+        let cols = "";
+        for (let i = 0; i < numPlayers; i++) {
+          const pKey = ROSTER_KEYS[i];
+          const name = window.getPenDisplayName ? window.getPenDisplayName(pKey) : pKey.toUpperCase();
+          const score = (scores && scores[pKey]) ? scores[pKey] : 0;
+          cols += `
+            <div class="score-col" style="min-width:60px; padding:4px 6px;">
+              <span class="s-name" style="font-size:10px; font-weight:800;">${name}</span>
+              <span class="s-num" style="font-size:18px;">${score}</span>
+            </div>
+          `;
+        }
+        scoreboxHtml = `<div class="game-over-scorebox" style="display:flex; flex-wrap:wrap; justify-content:center; gap:6px; max-width:92vw;">${cols}</div>`;
+      } else {
+        scoreboxHtml = `
           <div class="game-over-scorebox">
             <div class="score-col">
               <span class="s-name">${p1Name}</span>
@@ -1023,6 +1034,18 @@
               <span class="s-num">${(scores && scores.rival) ? scores.rival : 0}</span>
             </div>
           </div>
+        `;
+      }
+
+      card.innerHTML = `
+        <div class="arcade-hub game-over-hub">
+          <div class="game-over-header">
+            <span class="game-over-trophy">${isMeWinner ? "🏆" : "🥈"}</span>
+            <h2 class="game-over-title">${winnerName} WON!</h2>
+            <p class="game-over-sub">${isMeWinner ? "👑 Winner!" : "⚡ Play Rematch?"}</p>
+          </div>
+
+          ${scoreboxHtml}
 
           <div class="game-over-actions">
             <button type="button" class="btn-game-rematch" id="btn-rematch" onclick="window.requestRematch()">
@@ -2201,16 +2224,15 @@
         window.PF_MULTIPLAYER_MATCH.isRoundEnding = true;
 
         const isHost = window.PF_MULTIPLAYER ? window.PF_MULTIPLAYER.isHost : false;
-        const myRole = isHost ? "player" : "rival";
-        const localName = (localStorage.getItem("pf_name") || (isHost ? "Host" : "Friend")).toUpperCase();
-        const remoteName = (window.PF_MULTIPLAYER?.remoteName || (isHost ? "Friend" : "Host")).toUpperCase();
+        const myPenId = window.PF_MULTIPLAYER ? window.PF_MULTIPLAYER.getMyPenId() : (isHost ? "player" : "rival");
         const finishedRound = data.finishedRound || (data.round ? data.round : 1);
 
-        let resultText = "⚖️ DRAW! BOTH PENS OUT!";
-        if (data.winner === myRole) {
+        let resultText = "⚖️ DRAW! ALL PENS OUT!";
+        if (data.winner === myPenId) {
           resultText = `👑 YOU WON ROUND ${finishedRound}!`;
         } else if (data.winner) {
-          resultText = `💥 ${remoteName} WON ROUND ${finishedRound}!`;
+          const winnerName = window.getPenDisplayName ? window.getPenDisplayName(data.winner) : data.winner.toUpperCase();
+          resultText = `💥 ${winnerName} WON ROUND ${finishedRound}!`;
         }
 
         if (window.__pf && window.__pf.controller && window.__pf.controller.hud) {
@@ -2219,9 +2241,10 @@
 
         if (data.matchWinner) {
           setTimeout(() => {
-            const isWinner = data.matchWinner === myRole;
+            const isWinner = data.matchWinner === myPenId;
+            const champName = window.getPenDisplayName ? window.getPenDisplayName(data.matchWinner) : "CHAMPION";
             if (window.__pf && window.__pf.controller && window.__pf.controller.hud) {
-              window.__pf.controller.hud.showResult(isWinner ? "🏆 YOU WON THE MATCH!" : "💔 MATCH OVER", 3500);
+              window.__pf.controller.hud.showResult(isWinner ? "🏆 YOU WON THE MATCH!" : `🏆 ${champName} WON THE MATCH!`, 3500);
             }
             setTimeout(() => {
               window.showGameOverModal(data.matchWinner, data.scores || window.PF_MULTIPLAYER_MATCH.scores);
@@ -2609,7 +2632,7 @@
       const isMulti = window.PF_MULTIPLAYER && window.PF_MULTIPLAYER.state === 'OPEN';
       const isHost = window.PF_MULTIPLAYER ? window.PF_MULTIPLAYER.isHost : true;
       if (isMulti) {
-        const allowedSlot = isHost ? 0 : 1;
+        const allowedSlot = window.PF_MULTIPLAYER ? window.PF_MULTIPLAYER.mySlot : (isHost ? 0 : 1);
         if (slotIndex !== allowedSlot) {
           return; // Prevent clicking opponent's slot
         }
@@ -2647,7 +2670,8 @@
         }
         window.currentChosenPens[selectingForSlot] = penId;
         const myName = (localStorage.getItem("pf_name") || "YOU").toUpperCase();
-        if (selectingForSlot === 0 || (window.PF_MULTIPLAYER && !window.PF_MULTIPLAYER.isHost && selectingForSlot === 1)) {
+        const mySlot = window.PF_MULTIPLAYER ? window.PF_MULTIPLAYER.mySlot : (selectingForSlot === 0 ? 0 : 1);
+        if (selectingForSlot === mySlot) {
           setEquippedPenId(penId);
         }
         if (window.PF_NET && window.PF_NET.connected) {

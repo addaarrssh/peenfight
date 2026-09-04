@@ -301,6 +301,34 @@
             type: 'LOBBY_UPDATE',
             players: this.players
           });
+
+          // If match is live in 3-8 players, eliminate the disconnected player's pen so match never freezes
+          if (this.isHost && window.PF_MULTIPLAYER_MATCH && window.__pf && window.__pf.pens) {
+            const penId = info.penId || this.rosterIds[info.slot];
+            if (penId && !window.PF_MULTIPLAYER_MATCH.isRoundEnding) {
+              window.PF_MULTIPLAYER_MATCH.outs.add(penId);
+              if (this.currentStriker === penId) {
+                const allPens = Object.keys(window.__pf.pens);
+                const survivors = allPens.filter(id => !window.PF_MULTIPLAYER_MATCH.outs.has(id));
+                if (survivors.length > 0) {
+                  const fullIdx = allPens.indexOf(penId);
+                  for (let s = 1; s <= allPens.length; s++) {
+                    const candidate = allPens[(fullIdx + s) % allPens.length];
+                    if (survivors.includes(candidate)) {
+                      this.currentStriker = candidate;
+                      break;
+                    }
+                  }
+                  if (window.PF_NET) window.PF_NET.updateTurnCue();
+                  this.broadcastToAll({
+                    type: 'SETTLE_SYNC',
+                    striker: this.currentStriker
+                  });
+                }
+              }
+              window.PF_MULTIPLAYER_MATCH.checkOuts();
+            }
+          }
         }
       });
 
@@ -714,9 +742,13 @@
             this.currentStriker = packet.nextStriker;
           } else {
             const activePens = (typeof window !== 'undefined' && window.__pf && window.__pf.pens) ? Object.keys(window.__pf.pens) : this.rosterIds.slice(0, 2);
-            const curIdx = activePens.indexOf(packet.striker);
-            if (curIdx !== -1 && activePens.length > 1) {
-              this.currentStriker = activePens[(curIdx + 1) % activePens.length];
+            const match = (typeof window !== 'undefined') ? window.PF_MULTIPLAYER_MATCH : null;
+            const alivePens = (match && match.outs && match.outs.size > 0)
+              ? activePens.filter(id => !match.outs.has(id))
+              : activePens;
+            if (alivePens.length > 1) {
+              const curIdx = alivePens.indexOf(packet.striker);
+              this.currentStriker = (curIdx !== -1) ? alivePens[(curIdx + 1) % alivePens.length] : alivePens[0];
             } else {
               this.currentStriker = (packet.striker === "player") ? "rival" : "player";
             }
@@ -847,11 +879,28 @@
       if (!nextStriker) {
         // Get the list of active pens from the game engine
         const activePens = (window.__pf && window.__pf.pens) ? Object.keys(window.__pf.pens) : this.rosterIds.slice(0, 2);
-        // Find current striker index and advance to next pen in rotation
-        const curIdx = activePens.indexOf(striker);
-        if (curIdx !== -1 && activePens.length > 1) {
-          nextStriker = activePens[(curIdx + 1) % activePens.length];
-        } else {
+        const match = window.PF_MULTIPLAYER_MATCH;
+        const alivePens = (match && match.outs && match.outs.size > 0)
+          ? activePens.filter(id => !match.outs.has(id))
+          : activePens;
+
+        if (alivePens.length > 1) {
+          const curIdx = alivePens.indexOf(striker);
+          if (curIdx !== -1) {
+            nextStriker = alivePens[(curIdx + 1) % alivePens.length];
+          } else {
+            // If striker itself just fell or was not in alivePens, pick next alive pen in circle order
+            const fullIdx = activePens.indexOf(striker);
+            for (let s = 1; s <= activePens.length; s++) {
+              const candidate = activePens[(fullIdx + s) % activePens.length];
+              if (alivePens.includes(candidate)) {
+                nextStriker = candidate;
+                break;
+              }
+            }
+          }
+        }
+        if (!nextStriker) {
           // Fallback: simple 2-player toggle
           nextStriker = (striker === "player") ? "rival" : "player";
         }
@@ -924,6 +973,9 @@
     }
 
     isMyTurn() {
+      if (typeof window !== 'undefined' && window.PF_MULTIPLAYER_MATCH && window.PF_MULTIPLAYER_MATCH.outs && window.PF_MULTIPLAYER_MATCH.outs.has(this.getMyPenId())) {
+        return false;
+      }
       return this.currentStriker === this.getMyPenId();
     }
 
